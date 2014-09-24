@@ -8,16 +8,16 @@ including Y(0), Ymax, nH and Kr.
 #Features
 This program can fits different cells with different hill equation
 and generates the fitting result.
-![Alt text](Example/Example_first.png)
+![Alt text](Example/Example_originaldata_fittedcurve.png)
 All the coefficients can be normalised and produces several curves
 with the same Ymax and Y(0).
-![Alt text](Example/Example_second.png)
+![Alt text](Example/Example_normalisedfittedcurve.png)
 All the original data can also be normalised and generate a curve
 which takes into account all the data.
-![Alt text](Example/Example_third.png)
+![Alt text](Example/Example_normaliseddata_fittedcurve.png)
 The standard deviation of the error in each concentration can be
 plotted as error bar.
-![Alt text](Example/Example_fourth.png)
+![Alt text](Example/Example_allfitting.png)
 
 #Requirements
 **numpy, scipy, matplotlib** Widely used library when dealling with
