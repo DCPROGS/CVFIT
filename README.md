@@ -1,16 +1,12 @@
 CVFIT
 =====
 
-A curve fitting program which fits the data with Hill
-equation with weighted least square and obtaining the coefficients
-including Y(0), Ymax, nH and Kr.
+CVFIT is a program for weighted least-squares fitting of various equations to experimental data, for calculating errors of fitting estimates and for plotting the results. Currently only the Hill equation fit is possible and the error calculation is being implemented. 
 
 #Features
-This program can fits different cells with different hill equation
-and generates the fitting result.
+It is possible to fit several data sets simultaneously with the same equation. 
 ![Alt text](Example/Example_originaldata_fittedcurve.png)
-All the coefficients can be normalised and produces several curves
-with the same Ymax and Y(0).
+For dose-response curves: the data once fitted can be normalised to the fitted maxima.
 ![Alt text](Example/Example_normalisedfittedcurve.png)
 All the original data can also be normalised and generate a curve
 which takes into account all the data.
@@ -23,10 +19,10 @@ plotted as error bar.
 **numpy, scipy, matplotlib** Widely used library when dealling with
 scientific calculation
 
-**Markdown** A library which convert Markdown file to html
+**Markdown** A library which converts Markdown file to html
 
     pip install markdown
 
-**Prettyplotlib** A matplotlib-enhancer library
+**Prettyplotlib** A matplotlib-enhancer library.
 
     pip install prettyplotlib
