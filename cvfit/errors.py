@@ -29,7 +29,7 @@ def optimise_deltas(dataset, func, args, notfixed, fixval):
                 deltas[index] *= 0.5
             L = -0.5 * SSD(args + deltas, func, dataset, notfixed, fixval)
             count += 1
-    print '\n deltas = \n', deltas
+    #print '\n deltas = \n', deltas
     return deltas
 
 def hessian(dataset, func, pars, notfixed, fixval):
@@ -46,7 +46,7 @@ def hessian(dataset, func, pars, notfixed, fixval):
    #     pos = 2 #delete
    #     deltas[pos] = copy.deepcopy(ideltas[pos])*(10**(jar/10)) #delete
     i = 0
-    print '\n deltas \n', deltas
+    #print '\n deltas \n', deltas
     for i1 in np.nonzero(notfixed)[0]:
         j = 0
         for j1 in np.nonzero(notfixed)[0]:
@@ -87,7 +87,7 @@ def covariance_matrix(dataset, func, pars, notfixed, fixval):
     """ """
     cov = nplin.inv(hessian(dataset, func, pars, notfixed, fixval))
     minssd = SSD(pars, func, dataset, notfixed, fixval)
-    print '\n SSD \n', minssd
+    #print '\n SSD \n', minssd
     kfit = np.nonzero(notfixed)[0].size
     #TODO: check if weights were used to calculate SSD. If not then
     # calculate errvar.

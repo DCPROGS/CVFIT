@@ -1,6 +1,6 @@
 
 
-class DataPoint(object):
+class XYDataPoint(object):
     """
     """
 
@@ -13,7 +13,7 @@ class DataPoint(object):
         else:
             self.w = 1.0
 
-class DataSet(object):
+class XYDataSet(object):
     """
     """
     def __init__(self):
@@ -21,10 +21,10 @@ class DataSet(object):
 
     def from_columns(self, x, y):
         for i in range(len(x)):
-            self.points.append(DataPoint(x[i], y[i]))
+            self.points.append(XYDataPoint(x[i], y[i]))
 
     def add_point(self, x, y):
-        self.points.append(DataPoint(x, y))
+        self.points.append(XYDataPoint(x, y))
 
     def size(self):
         return len(self.points)

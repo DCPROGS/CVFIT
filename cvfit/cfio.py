@@ -19,7 +19,7 @@ def read_sets_from_csv(filename):
     setlist = []
     for i in range(setnum):
         real = np.isfinite(rawresult[:, i * 2])
-        set = data.DataSet()
+        set = data.XYDataSet()
         set.from_columns(rawresult[real, i * 2],
            rawresult[real, i * 2 + 1])
         setlist.append(set)

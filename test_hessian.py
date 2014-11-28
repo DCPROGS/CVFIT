@@ -13,10 +13,6 @@ if __name__ == "__main__":
     
 #    filename = cfio.ask_for_file()
     filename = "Example/Example.csv"
-    #dataset = cfio.read_sets_from_csv(filename)[0]
-    #dataset = cfio.read_sets_from_csv(filename)[1]
-    #dataset = cfio.read_sets_from_csv(filename)[2]
-    #dataset = cfio.read_sets_from_csv(filename)[3]
     dataset = cfio.read_sets_from_csv(filename)[4]
     print dataset
     
@@ -29,6 +25,8 @@ if __name__ == "__main__":
     names = ['Ymin', 'Ymax', 'EC50', 'nH']
     notfixed = np.array([False, True, True, True])
     fixval = copy.deepcopy(pars)
+    minssd = equations.SSD(pars, func, dataset, notfixed, fixval)
+    print '\n SSD \n', minssd
     hes = errors.hessian(dataset, equations.hill_equation, pars, notfixed, fixval)
     print '\n Observed information matrix = \n', hes
     covar = errors.covariance_matrix(dataset, equations.hill_equation, pars, notfixed, fixval) 
@@ -37,6 +35,8 @@ if __name__ == "__main__":
     print '\n aSD \n', aSD
     correl = errors.correlation_matrix(covar)
     print '\n Correlation matrix = \n', correl
+    
+    
     #lowli = errors.confidence_interval(covar, dataset, equations.hill_equation, pars, notfixed)
     ssec, ssec1, ssec2, count = errors.new_secs3(aSD, covar, dataset, equations.hill_equation, pars, notfixed, hes)
     print '\n ssec = \n', ssec, ssec1, ssec2
