@@ -1,46 +1,18 @@
-﻿import sys
+#! /usr/bin/python
+"""A general purpose curve fitting software."""
 import os
-import codecs
-
-
 import numpy as np
-from scipy import optimize, stats
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-import markdown
-import prettyplotlib as ppl
 
-
+from hillequation import Cell 
 from toolkit import Report, check_input
-from hillequation import HillEquation, hill_equation, hill_equation_residuals, \
-    fitting_curve_hill_equation
+from hillequation import fitting_curve_hill_equation
 
-
-class Cell(object):
-#
- #   '''
-  #  A class that store the inportant information for each cell
-   # '''
-#
-    def __init__(self, concentration, response):
-   #     '''
-   #     Make the class by specifying the concentration and response.
-    #    Original data is then sorted according to the concentration.
-     #   '''
-#
-        # Keep track of the original data
-        self.originalconcentration = concentration
-        self.originalresponse = response
-        # Sort the data according to concentration
-        result = np.vstack((concentration, response))
-        result.sort()
-        self.concentration = result[0]
-        self.response = result[1]
-        self.size = len(result[0])
 
 print 'Please type in the loaction of the csv file'
 filename = raw_input('filename:').strip()
+
+#filename = "Example/Example.csv"
+
 while (os.path.exists(filename) is False) or (filename[-4:] != '.csv'):
     if os.path.exists(filename) is False:
         print filename, 'not found. Please type in again.'
@@ -66,7 +38,7 @@ if rearange == 2:
     celllist = [Cell(result[::2], result[1::2])]
 elif rearange == 1:
     celllist = []
-    for index,cellnum in enumerate(range(setnum)):
+    for index in range(setnum):
         real = np.isfinite(rawresult[:, index * 2])
         cell = Cell(rawresult[real, index * 2],
                     rawresult[real, index * 2 + 1])
@@ -83,9 +55,8 @@ rawresult = rawresult.astype('string')
 rawresult[mask] = ' '
 report.table(rawresult)
 
-# this is the bit which calls to the fitting itself
 print 'Select equations.'
 print '1. Hill equation'
 Equation = check_input('Equation number:', ['1'], 1)
 if Equation == 1:
-    fitting_curve_hill_equation(filename, celllist, report, rawresult, index)
+    fitting_curve_hill_equation(filename, celllist, report)
