@@ -14,7 +14,6 @@ References
 import errors
 import cfio
 import data
-import equations
 
 #import Example
 

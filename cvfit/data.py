@@ -1,36 +1,42 @@
-
-
-class XYDataPoint(object):
-    """
-    """
-
-    def __init__(self, x, y, se=0):
-        self.x = x
-        self.y = y
-        self.se = se
-        if se > 0:
-            self.w = 1.0 / (se * se)
-        else:
-            self.w = 1.0
+import numpy as np
 
 class XYDataSet(object):
     """
     """
     def __init__(self):
-        self.points = []
+        self.X = []
+        self.Y = []
+        self.SE = []
+        self.W = []
+        self.title = None
+        self._weightmode = None
 
-    def from_columns(self, x, y):
-        for i in range(len(x)):
-            self.points.append(XYDataPoint(x[i], y[i]))
-
-    def add_point(self, x, y):
-        self.points.append(XYDataPoint(x, y))
+    def from_columns(self, X, Y, SE=None):
+        # Keep track of the original data
+        self.Xoriginal, self.Yoriginal, self.SEoriginal = X, Y, SE
+        # Sort the data according to concentration
+        temp = np.vstack((self.Xoriginal, self.Yoriginal, self.SEoriginal))
+        temp.sort()
+        self.X = temp[0]
+        self.Y = temp[1]
+        self.SE = temp[2]
+        self.W = np.ones((len(self.X)))
 
     def size(self):
-        return len(self.points)
+        return len(self.X)
+    
+    def _set_weightmode(self, weightmode):
+        if weightmode == 1:
+            pass
+        elif weightmode == 2:
+            self.W = np.W / np.power(np.array(self.SE), 2)
+        self._weightmode = weightmode 
+    def _get_weightmode(self):
+        return self._weightmode
+    weightmode = property(_get_weightmode, _set_weightmode)
 
     def __str__(self):
         str = "\n"
-        for point in self.points:
-            str += "{0:.6g}\t{1:.6g}\n".format(point.x, point.y)
+        for i in range(len(self.X)):
+            str += "{0:.6g}\t{1:.6g}\n".format(self.X[i], self.Y[i], self.SE[i])
         return str
