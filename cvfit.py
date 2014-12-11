@@ -12,8 +12,6 @@ from cvfit import errors
 from cvfit.errors import residuals, SSD, SSDlik
 from cvfit.hill import Hill
 
-from toolkit import check_input
-
 def load_data():
     #filename = cfio.ask_for_file()
     filename = "Example/Example.csv"
@@ -34,7 +32,7 @@ def load_data():
     print('Please select the weighting method now:')
     print '1: Weights constant; errors from residuals (Default).'
     print '2: Weights from specified s(Y); errors from weights.'
-    #weightmode = check_input('Mode number: ', ['1', '2'], 1)
+    #weightmode = cfio.check_input('Mode number: ', ['1', '2'], 1)
     weightmode = 1
     for each in sets:
         each.weightmethod = weightmode
@@ -42,7 +40,7 @@ def load_data():
     print '\nPlease, choose between:'
     print '0- fit all sets with the same equation;'
     print '1- fit each set separately [Default].'
-    #fit_separate = check_input('0 or 1: ', ['0', '1'], 1)
+    #fit_separate = cfio.check_input('0 or 1: ', ['0', '1'], 1)
     fit_separate = 1
     return sets
     
@@ -55,14 +53,14 @@ if __name__ == "__main__":
     
     print '\nAvailable equations:'
     print '1. Hill equation'
-    #ieq = check_input('Choose equation to fit [1] :', ['1'], 1)
+    #ieq = cfio.check_input('Choose equation to fit [1] :', ['1'], 1)
     #if ieq == 1:
     #    fit_hill_equation(filename, celllist, report)
     
     print 'Do you want to select fit settings separately?'
     print '0- use same settings for all datasets (Default);'
     print '1- set settings for each dataset separately.'
-    #fit_setting = check_input('0 or 1: ', ['0', '1'], 0)
+    #fit_setting = cfio.check_input('0 or 1: ', ['0', '1'], 0)
     fit_setting = 0
     
     for set in sets:

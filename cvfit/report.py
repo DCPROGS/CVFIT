@@ -63,18 +63,4 @@ class Report(object):
         self.file.close()
 
 
-def check_input(text, accept, default):
-    '''
-    Check if the input is in acceptable range or not
-    If not, ask to key in another value
-    '''
 
-    inputnumber = raw_input(text)
-    if inputnumber:
-        while inputnumber not in accept:
-            print text
-            inputnumber = raw_input(text)
-    else:
-        inputnumber = default
-
-    return int(inputnumber)
