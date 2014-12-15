@@ -64,5 +64,5 @@ class XYDataSet(object):
     def __str__(self):
         str = "\nX\tY\ts(Y)\tweight\n"
         for i in range(len(self.X)):
-            str += "{0:.6g}\t{1:.6g}\t{2:.6g}\n".format(self.X[i], self.Y[i], self.S[i])
+            str += "{0:.6g}\t{1:.6g}\t{2:.6g}\t{3:.6g}\n".format(self.X[i], self.Y[i], self.S[i], self.W[i])
         return str

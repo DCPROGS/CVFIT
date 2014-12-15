@@ -29,16 +29,19 @@ def check_input(text, accept, default):
 
     return int(inputnumber)
 
-def string_estimates(func, aproxSD):
+def string_estimates(func, aproxSD, CVs):
     j = 0
     str = ''
     for i in range(len(func.names)):
         str += '\nParameter {0:d}: {1}\t= {2:.6g}\t'.format(i+1, func.names[i], func.pars[i])
         if not func.fixed[i]:
-            str += 'Approx SD = {0:.6g}'.format(aproxSD[j])
+            str += 'Approx SD = {0:.6g}\t'.format(aproxSD[j])
+            str += 'CV = {0:.1f}'.format(CVs[j])
             j += 1
         else:
             str += '(fixed)'
+    if np.any(CVs > 33):
+        str += "\nWARNING: SOME PARAMETERS POORLY DEFINED (CV > 33%); try different guesses"
     return str
 
 def string_liklimits(func, limits):

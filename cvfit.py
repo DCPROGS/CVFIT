@@ -19,9 +19,7 @@ def load_data():
         allsets = cfio.read_sets_from_csv(filename, col=2)
         print('File {0} loaded'.format(filename))
         print('{0:d} sets found.'.format(len(allsets)))
-        for i in range(len(allsets)):
-            print '\nSet #{0:d}:'.format(i+1)
-            print allsets[i]
+        
     except ValueError:
         print('Oops! File did not load properly...')
     
@@ -36,12 +34,11 @@ def load_data():
     weightmode = 1
     for each in sets:
         each.weightmethod = weightmode
-
-    print '\nPlease, choose between:'
-    print '0- fit all sets with the same equation;'
-    print '1- fit each set separately [Default].'
-    #fit_separate = cfio.check_input('0 or 1: ', ['0', '1'], 1)
-    fit_separate = 1
+    
+    for i in range(len(allsets)):
+            print '\nSet #{0:d}:'.format(i+1)
+            print allsets[i]
+    
     return sets
     
         
@@ -50,6 +47,11 @@ if __name__ == "__main__":
     sets = load_data()
     # TODO: here display data
     
+    print '\nPlease, choose between:'
+    print '0- fit all sets with the same equation;'
+    print '1- fit each set separately [Default].'
+    #fit_separate = cfio.check_input('0 or 1: ', ['0', '1'], 1)
+    fit_separate = 1
     
     print '\nAvailable equations:'
     print '1. Hill equation'
@@ -89,20 +91,23 @@ if __name__ == "__main__":
         correl = errors.correlation_matrix(covar)
         
         aproxSD = errors.approximateSD(coeffs, hill, set)
-        
-                
+        CVs = 100.0 * aproxSD / coeffs
+         
         print 'Number of fuction evaluation =', dict['nfev']
         print('Number of point fitted = {0:d}'.format(set.size()))
-        print('Number of parameters estimated = {0:d}'.format(len(hill.fixed)))
-        ndf = set.size() - len(hill.fixed)
+        kfit = len(np.nonzero(np.invert(fixed))[0])
+        print('Number of parameters estimated = {0:d}'.format(kfit))
+        ndf = set.size() - kfit
         print('Degrees of freedom = {0:d}'.format(ndf))
-        print cfio.string_estimates(hill, aproxSD)
+        print cfio.string_estimates(hill, aproxSD, CVs)
         
         var = Smin / ndf
         Sres, Lmax = sqrt(var), -SSDlik(coeffs, hill, set)
         print ('\nResidual error SD = {0:.3f} (variance = {1:.3f})'.format(Sres, var))
         print ('Minimum SSD = {0:.3f}; \tMax log-likelihood = {1:.3f}'.format(Smin, Lmax))
         print '\nCorrelation matrix = \n', correl
+        if np.any(np.absolute(correl - np.identity(kfit)) > 0.9):
+            print("\nWARNING: SOME PARAMETERS ARE STRONGLY CORRELATED (coeff > 0.9); try different guesses")
 
         tval = errors.tvalue(ndf)
         m = tval * tval / 2.0
