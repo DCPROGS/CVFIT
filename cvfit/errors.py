@@ -7,19 +7,61 @@ from numpy import linalg as nplin
 def residuals(pars, func, X, Y, W):
     '''
     Calculate the weighted residuals.
+
+    Parameters
+    ----------
+    pars : array_like, shape (k, )
+        Function parameters.
+    func : callable func(x, args)
+        The objective function to be minimized.
+    X, Y, W : ndarrays, shape (n, )
+        x, y and weights of data points.
+
+    Returns
+    -------
+    residuals : ndarray, shape (n, )
+        Weighted sum of squared deviations.
     '''
     return W * (Y - func.to_fit(pars, X))
 
 def SSD(pars, func, X, Y, W):
     """
-    Calculate sum of squared deviations.
+    Calculate weighted sum of squared deviations.
+
+    Parameters
+    ----------
+    pars : array_like, shape (k, )
+        Function parameters.
+    func : callable func(x, args)
+        The objective function to be minimized.
+    X, Y, W : ndarrays, shape (n, )
+        x, y and weights of data points.
+
+    Returns
+    -------
+    SSD : float
+        Weighted sum of squared deviations.
     """
     return np.sum(W * (Y - func.to_fit(pars, X))**2)
 
 def SSDlik(theta, func, set):
     """
-    Calculate likelihood coresponding to the sum of the squared deviations 
+    Calculate log likelihood coresponding to the sum of the squared deviations
     assuming that errors follow Gausian distribution.
+
+    Parameters
+    ----------
+    theta : array_like, shape (k, )
+        Initial guess.
+    func : callable func(x, args)
+        The objective function to be minimized.
+    set : cvfit.data.XYDataSet type object
+        Extra argument passed to func.
+
+    Returns
+    -------
+    SSDlik : float
+        Log likelihood of SSD function.
     """
     S = SSD(theta, func, set.X, set.Y, set.W)
     Sres = sqrt(S / (set.size() - len(func.fixed)))
@@ -103,9 +145,26 @@ def covariance_matrix(theta, func, set):
     errvar = minssd / (set.size() - kfit)
     return cov * errvar
 
-def approximateSD(theta, func, set):
-    """ """
-    cov = covariance_matrix(theta, func, set)
+def approximateSD(theta, func, args):
+    """
+    Calculate approximate standard deviation of the estimates from the inverse
+    of the Hessian matrix ('observed information matrix').
+
+    Parameters
+    ----------
+    theta : array_like, shape (k, )
+        Initial guess.
+    func : callable func(x, args)
+        The objective function to be minimized.
+    args : object
+        Extra arguments passed to func.
+
+    Returns
+    -------
+    approximateSD : ndarray, shape (k,)
+        Approximate SD.
+    """
+    cov = covariance_matrix(theta, func, args)
     return np.sqrt(cov.diagonal())
     
 def correlation_matrix(covar):
