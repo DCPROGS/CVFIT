@@ -1,5 +1,5 @@
 import copy
-from math import fabs, sqrt, log, pi
+import math
 from scipy import optimize
 import numpy as np
 from numpy import linalg as nplin
@@ -64,8 +64,8 @@ def SSDlik(theta, func, set):
         Log likelihood of SSD function.
     """
     S = SSD(theta, func, set.X, set.Y, set.W)
-    Sres = sqrt(S / (set.size() - len(func.fixed)))
-    return set.size() * log(sqrt(2 * pi) * Sres) + S / (2 * Sres**2)
+    Sres = math.sqrt(S / (set.size() - len(func.fixed)))
+    return set.size() * math.log(math.sqrt(2 * math.pi) * Sres) + S / (2 * Sres**2)
 
 def SSDlik_contour(x, num, theta, func, set):
     functemp = copy.deepcopy(func)
@@ -202,7 +202,7 @@ def tvalue(ndf):
 def lik_intervals(theta, SD, m, func, set):
     
     Lmax = -SSDlik(theta, func, set)
-    clim = sqrt(2. * m)
+    clim = math.sqrt(2. * m)
     Lcrit = Lmax - m
     Llimits = []
     
@@ -224,7 +224,7 @@ def lik_intervals(theta, SD, m, func, set):
             while not found and iter < 100: 
                 L = SSDlik_contour(((xlow1 + xhigh1) / 2), j, theta,
                     func, set) 
-                if fabs(Lcrit - L) > 0.01:
+                if math.fabs(Lcrit - L) > 0.01:
                     if L < Lcrit:
                         xlow1 = (xlow1 + xhigh1) / 2
                     else:
@@ -240,7 +240,7 @@ def lik_intervals(theta, SD, m, func, set):
                 #L1, L2, L3 = SSDlik_bisect(xlow2, xhigh2, j, theta, notfixed, hill_equation, dataset)
                 L = SSDlik_contour(((xlow2 + xhigh2) / 2), j, theta,
                     func, set) 
-                if fabs(Lcrit - L) > 0.01:
+                if math.fabs(Lcrit - L) > 0.01:
                     if L > Lcrit:
                         xlow2 = (xlow2 + xhigh2) / 2
                     else:
