@@ -86,14 +86,14 @@ def load_data(example=False):
     print('Please select the weighting method now:')
     print '1: Weights constant; errors from residuals (Default).'
     print '2: Weights from specified s(Y); errors from weights.'
-    #weightmode = cfio.check_input('Mode number: ', ['1', '2'], 1)
-    weightmode = 1
+    weightmode = cfio.check_input('Mode number: ', ['1', '2'], 1)
+    #weightmode = 1
     for each in sets:
-        each.weightmethod = weightmode
+        each.weightmode = weightmode
 
-    for i in range(len(allsets)):
+    for i in range(len(sets)):
             print '\nSet #{0:d}:'.format(i+1)
-            print allsets[i]
+            print sets[i]
 
     return sets
 
