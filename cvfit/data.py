@@ -32,6 +32,24 @@ class XYDataSet(object):
         self.Y = temp[1]
         self.S = temp[2]
         self.W = temp[3]
+        
+    def average_pooled(self):
+        '''
+        Calculate pooled data average response for each concentration and stardard
+        deviation of the mean.
+        '''
+
+        self.avX = np.unique(self.X)
+        self.avY = []
+        self.avS = []
+        for con in self.avX:
+            Y = self.Y[self.X == con]
+            if len(Y) > 1:
+                self.avY.append(np.mean(Y))
+                self.avS.append(np.std(Y) / np.sqrt(len(Y)))
+            else:
+                self.avY.append(Y[0])
+                self.avS.append(0.0)
 
     def size(self):
         return len(self.X)

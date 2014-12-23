@@ -14,20 +14,16 @@ class SingleFitSession(object):
         """
         self.data = dataset
         self.eq = equation
-        
         self.eq.propose_guesses(self.data)
         print('\nFitting session for ' + self.data.title + ' initialised!')
         
     def fit(self):
-        #theta = equation.get_theta()
         # Least square fitting
         coeffs, cov, dict, mesg, ier = optimize.leastsq(residuals, self.eq.theta,
             args=(self.eq, self.data.X, self.data.Y, self.data.W), full_output=1)
         self.eq.theta = coeffs
-        print 'coeffs=', coeffs
-        print 'theta=', self.eq.theta
         
-        print '\n\n\t' + self.data.title + ' fit finished'
+        print '\t' + self.data.title + ' fit finished'
         print 'Number of fuction evaluation =', dict['nfev']
         #print 'mesg=', mesg
         #print 'ier=', ier
@@ -38,7 +34,7 @@ class SingleFitSession(object):
 
         Smin = SSD(self.eq.theta, self.eq, 
             self.data.X, self.data.Y, self.data.W)
-        print '\n SSD \n', Smin
+        #print '\n SSD \n', Smin
         #hes = errors.hessian(coeffs, eq, set)
         #print '\n Observed information matrix = \n', hes
         covar = errors.covariance_matrix(self.eq.theta, self.eq, self.data)

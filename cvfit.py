@@ -38,7 +38,7 @@ if __name__ == "__main__":
         fsession = SingleFitSession(set, equation)
         fsession.fit()
         fsession.calculate_errors()
-        plots.plot_hill_fit_result_single(fname, fsession.data, fsession.eq, plotguess=True)
+        #plots.plot_hill_fit_result_single(fname, fsession.data, fsession.eq, plotguess=True)
         fitsessions.append(fsession)
     
     plots.plot_hill_fit_result_multiple(fname, fitsessions)
@@ -55,5 +55,7 @@ if __name__ == "__main__":
     fsession = SingleFitSession(pooldata, equation)
     fsession.fit()
     fsession.calculate_errors()
-    plots.plot_hill_fit_result_single(fname, fsession.data, fsession.eq)
+    fsession.data.average_pooled()
+    plots.plot_hill_fit_result_single(fname, fsession.data, fsession.eq,
+        plotdata=False, plotaverage=True)
     
