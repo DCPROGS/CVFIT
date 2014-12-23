@@ -71,7 +71,7 @@ def SSDlik_contour(x, num, theta, func, set):
     functemp = copy.deepcopy(func)
     functemp.fixed[num] = True
     functemp.pars[num] = x
-    theta = functemp.get_theta()
+    theta = functemp.theta
     result = optimize.minimize(SSDlik, theta, args=(functemp, set), 
         method='Nelder-Mead', jac=None, hess=None)
     return -result.fun

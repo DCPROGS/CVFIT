@@ -8,60 +8,71 @@ from cvfit import cfio
 from cvfit import errors
 from cvfit.errors import residuals, SSD, SSDlik
 
-def set_guesses(set, eq):
-    guesses = eq.guesses(set)
-    return eq
-    
-def do_fit(theta, set, eq):
-    
-    # Least square fitting
-    coeffs, cov, dict, mesg, ier = optimize.leastsq(residuals, theta,
-        args=(eq, set.X, set.Y, set.W), full_output=1)
-    print '\n\n\t' + set.title + ' fit finished'
-    print 'Number of fuction evaluation =', dict['nfev']
-    #print 'mesg=', mesg
-    #print 'ier=', ier
-    #print 'cov=', cov
-    return coeffs
-    
-def calculate_errors(coeffs, set, eq):
+class SingleFitSession(object):
+    def __init__(self, dataset, equation):
+        """
+        """
+        self.data = dataset
+        self.eq = equation
+        
+        self.eq.propose_guesses(self.data)
+        print('\nFitting session for ' + self.data.title + ' initialised!')
+        
+    def fit(self):
+        #theta = equation.get_theta()
+        # Least square fitting
+        coeffs, cov, dict, mesg, ier = optimize.leastsq(residuals, self.eq.theta,
+            args=(self.eq, self.data.X, self.data.Y, self.data.W), full_output=1)
+        self.eq.theta = coeffs
+        print 'coeffs=', coeffs
+        print 'theta=', self.eq.theta
+        
+        print '\n\n\t' + self.data.title + ' fit finished'
+        print 'Number of fuction evaluation =', dict['nfev']
+        #print 'mesg=', mesg
+        #print 'ier=', ier
+        #print 'cov=', cov
+        #return coeffs
+        
+    def calculate_errors(self):
 
-    Smin = SSD(coeffs, eq, set.X, set.Y, set.W)
-    #print '\n SSD \n', Smin
-    #hes = errors.hessian(coeffs, eq, set)
-    #print '\n Observed information matrix = \n', hes
-    covar = errors.covariance_matrix(coeffs, eq, set)
-    #print '\n Covariance matrix = \n', covar
-    correl = errors.correlation_matrix(covar)
+        Smin = SSD(self.eq.theta, self.eq, 
+            self.data.X, self.data.Y, self.data.W)
+        print '\n SSD \n', Smin
+        #hes = errors.hessian(coeffs, eq, set)
+        #print '\n Observed information matrix = \n', hes
+        covar = errors.covariance_matrix(self.eq.theta, self.eq, self.data)
+        #print '\n Covariance matrix = \n', covar
+        correl = errors.correlation_matrix(covar)
 
-    aproxSD = errors.approximateSD(coeffs, eq, set)
-    CVs = 100.0 * aproxSD / coeffs
+        aproxSD = errors.approximateSD(self.eq.theta, self.eq, self.data)
+        CVs = 100.0 * aproxSD / self.eq.theta
 
-    print('Number of point fitted = {0:d}'.format(set.size()))
-    kfit = len(np.nonzero(np.invert(eq.fixed))[0])
-    print('Number of parameters estimated = {0:d}'.format(kfit))
-    ndf = set.size() - kfit
-    print('Degrees of freedom = {0:d}'.format(ndf))
-    print cfio.string_estimates(eq, aproxSD, CVs)
+        print('Number of point fitted = {0:d}'.format(self.data.size()))
+        kfit = len(np.nonzero(np.invert(self.eq.fixed))[0])
+        print('Number of parameters estimated = {0:d}'.format(kfit))
+        ndf = self.data.size() - kfit
+        print('Degrees of freedom = {0:d}'.format(ndf))
+        print cfio.string_estimates(self.eq, aproxSD, CVs)
 
-    var = Smin / ndf
-    Sres, Lmax = sqrt(var), -SSDlik(coeffs, eq, set)
-    print ('\nResidual error SD = {0:.3f} (variance = {1:.3f})'.format(Sres, var))
-    print ('Minimum SSD = {0:.3f}; \tMax log-likelihood = {1:.3f}'.format(Smin, Lmax))
-    print '\nCorrelation matrix = \n', correl
-    if np.any(np.absolute(correl - np.identity(kfit)) > 0.9):
-        print("\nWARNING: SOME PARAMETERS ARE STRONGLY CORRELATED (coeff > 0.9); try different guesses")
+        var = Smin / ndf
+        Sres, Lmax = sqrt(var), -SSDlik(self.eq.theta, self.eq, self.data)
+        print ('\nResidual error SD = {0:.3f} (variance = {1:.3f})'.format(Sres, var))
+        print ('Minimum SSD = {0:.3f}; \tMax log-likelihood = {1:.3f}'.format(Smin, Lmax))
+        print '\nCorrelation matrix = \n', correl
+        if np.any(np.absolute(correl - np.identity(kfit)) > 0.9):
+            print("\nWARNING: SOME PARAMETERS ARE STRONGLY CORRELATED (coeff > 0.9); try different guesses")
 
-    tval = errors.tvalue(ndf)
-    m = tval * tval / 2.0
-    clim = sqrt(2. * m)
-    Lcrit = Lmax - m
-    print '\nLIKELIHOOD INTERVALS'
-    print ('{0:.3g}-unit Likelihood Intervals'.format(m) +
-        ' (equivalent SD for Gaussian- {0:.3g})'.format(clim))
-    print 'Lmax= {0:.6g}; Lcrit= {1:.6g}'.format(Lmax, Lcrit)
-    Llimits = errors.lik_intervals(coeffs, aproxSD, m, eq, set)
-    print cfio.string_liklimits(eq, Llimits)
+        tval = errors.tvalue(ndf)
+        m = tval * tval / 2.0
+        clim = sqrt(2. * m)
+        Lcrit = Lmax - m
+        print '\nLIKELIHOOD INTERVALS'
+        print ('{0:.3g}-unit Likelihood Intervals'.format(m) +
+            ' (equivalent SD for Gaussian- {0:.3g})'.format(clim))
+        print 'Lmax= {0:.6g}; Lcrit= {1:.6g}'.format(Lmax, Lcrit)
+        Llimits = errors.lik_intervals(self.eq.theta, aproxSD, m, self.eq, self.data)
+        print cfio.string_liklimits(self.eq, Llimits)
 
 
 def load_data(example=False):

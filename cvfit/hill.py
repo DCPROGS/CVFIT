@@ -13,7 +13,8 @@ class Hill(object):
         self.names = ['Ymin', 'Ymax', 'EC50', 'nH  ']
         self.data = None
         self.guess = None
-    
+        self._theta = None
+        
     def equation(self, conc, coeff):
         '''
         The hill equation.
@@ -22,21 +23,26 @@ class Hill(object):
             (1 + (conc / coeff[2]) ** coeff[3]))
             
     def to_fit(self, theta, conc):
+        #for each in np.nonzero(self.fixed)[0]:   
+        #    theta = np.insert(theta, each, self.pars[each])
+        self._set_theta(theta)
+        return self.equation(conc, self.pars)
+    
+    def _set_theta(self, theta):
         for each in np.nonzero(self.fixed)[0]:   
             theta = np.insert(theta, each, self.pars[each])
         self.pars = theta
-        return self.equation(conc, self.pars)
-    
-    def get_theta(self):
+    def _get_theta(self):
         return self.pars[np.nonzero(np.invert(self.fixed))[0]]
+    theta = property(_get_theta, _set_theta)
     
-    def guesses(self, set):
+    def propose_guesses(self, set):
         '''
         Calculate the initial guesses for fitting with Hill equation.
         '''
         
         #if self.Component == 1:
-        guess = np.empty(4)
+        self.guess = np.empty(4)
         slope, intercept, r_value, p_value, std_err = stats.linregress(set.X, set.Y)
         if slope > 0:
             self.trend = 1
@@ -45,33 +51,32 @@ class Hill(object):
         if self.trend == 1: # Response increases with concentration
             # Determine Y(0)
             if self.fixed[0]:
-                guess[0] = 0
+                self.guess[0] = 0
             else:
-                guess[0] = np.mean(set.Y[set.X == set.X[0]])
+                self.guess[0] = np.mean(set.Y[set.X == set.X[0]])
             if self.fixed[1]:
-                guess[1] = 1
+                self.guess[1] = 1
             else:
                 # Determine Ymax
-                guess[1] = np.mean(set.Y[set.X == set.X[-1]]) - guess[0]
+                self.guess[1] = np.mean(set.Y[set.X == set.X[-1]]) - self.guess[0]
         else: # Response decreases with concentration
             # Determine Y(0)
-            guess[0] = np.mean(set.Y[set.X == set.X[-1]])
+            self.guess[0] = np.mean(set.Y[set.X == set.X[-1]])
             # Determine Ymin
-            guess[1] = np.mean(set.Y[set.X == set.X[0]]) - guess[0]
+            self.guess[1] = np.mean(set.Y[set.X == set.X[0]]) - self.guess[0]
         # Determine Kr
-        guess[2] = 10 ** ((np.log10(set.X[0]) + np.log10(set.X[-1])) / 2)
+        self.guess[2] = 10 ** ((np.log10(set.X[0]) + np.log10(set.X[-1])) / 2)
         # Determine nH  
-        LinRegressX = np.log10(set.X[set.Y < np.amax(set.Y)]) - np.log10(guess[2])
+        LinRegressX = np.log10(set.X[set.Y < np.amax(set.Y)]) - np.log10(self.guess[2])
         ratio = set.Y[set.Y < np.amax(set.Y)] / np.amax(set.Y)
         LinRegressY = np.log10(ratio / (1 - ratio))
         slope, intercept, r_value, p_value, std_err = stats.linregress(
             LinRegressX, LinRegressY)
-        guess[3] = slope
+        self.guess[3] = slope
 
 #        elif self.Component == 2:
 #            print 'Two Components fitting is not completed.'
 #            sys.exit(0)
-        self.pars = guess.copy()
-        self.guess = guess.copy()
-        return guess
+        self.pars = self.guess.copy()
+        #return self.guess
 

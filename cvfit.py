@@ -5,6 +5,7 @@ __date__ ="$29-Nov-2014 15:40:02$"
 
 from cvfit import fitting
 from cvfit import plots
+from cvfit.fitting import SingleFitSession
 
 if __name__ == "__main__":
     
@@ -31,14 +32,15 @@ if __name__ == "__main__":
         from cvfit.hill import Hill as eqfit
         fixed = [True, False, False, True]
         
+    fitsessions = []
     for set in sets:
+        
         equation = eqfit(eqname)
         equation.fixed = fixed
-        equation = fitting.set_guesses(set, equation)
-
-        theta = equation.get_theta()
-        coeffs = fitting.do_fit(theta, set, equation)
-        fitting.calculate_errors(coeffs, set, equation)
         
-        plots.plot_hill_guesses_result(fname, set, equation)
+        fsession = SingleFitSession(set, equation)
+        fsession.fit()
+        fsession.calculate_errors()
+        plots.plot_hill_guesses_result(fname, fsession.data, fsession.eq)
+        fitsessions.append(fsession)
         
