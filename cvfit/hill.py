@@ -14,6 +14,7 @@ class Hill(object):
         self.data = None
         self.guess = None
         self._theta = None
+
         
     def equation(self, conc, coeff):
         '''
@@ -36,39 +37,57 @@ class Hill(object):
         return self.pars[np.nonzero(np.invert(self.fixed))[0]]
     theta = property(_get_theta, _set_theta)
     
-    def propose_guesses(self, set):
+    def normalise(self, data):
+        '''
+        Nomalise Y to the fitted maximum.
+        '''
+
+        if data.trend == 1:
+            # Nomalise the coefficients by fixing the Y(0) and Ymax
+            self.normpars = self.pars.copy()
+            self.normpars[0], self.normpars[1] = 0, 1
+            # Nomalise the response
+            data.normY = (data.Y - self.pars[0]) / self.pars[1]
+        elif data.trend == -1:
+            # Nomalise the coefficients by fixing the Y(0) and Ymax
+            self.normpars = self.pars.copy()
+            self.normpars[0], self.normpars[1] = 1, 0
+            # Nomalise the response
+            data.normY = 1 - (data.Y - self.pars[1]) / self.pars[0]
+    
+    def propose_guesses(self, data):
         '''
         Calculate the initial guesses for fitting with Hill equation.
         '''
         
         #if self.Component == 1:
         self.guess = np.empty(4)
-        slope, intercept, r_value, p_value, std_err = stats.linregress(set.X, set.Y)
+        slope, intercept, r_value, p_value, std_err = stats.linregress(data.X, data.Y)
         if slope > 0:
-            self.trend = 1
+            data.trend = 1
         else:
-            self.trend = -1
-        if self.trend == 1: # Response increases with concentration
+            data.trend = -1
+        if data.trend == 1: # Response increases with concentration
             # Determine Y(0)
             if self.fixed[0]:
                 self.guess[0] = 0
             else:
-                self.guess[0] = np.mean(set.Y[set.X == set.X[0]])
+                self.guess[0] = np.mean(data.Y[data.X == data.X[0]])
             if self.fixed[1]:
                 self.guess[1] = 1
             else:
                 # Determine Ymax
-                self.guess[1] = np.mean(set.Y[set.X == set.X[-1]]) - self.guess[0]
+                self.guess[1] = np.mean(data.Y[data.X == data.X[-1]]) - self.guess[0]
         else: # Response decreases with concentration
             # Determine Y(0)
-            self.guess[0] = np.mean(set.Y[set.X == set.X[-1]])
+            self.guess[0] = np.mean(data.Y[data.X == data.X[-1]])
             # Determine Ymin
-            self.guess[1] = np.mean(set.Y[set.X == set.X[0]]) - self.guess[0]
+            self.guess[1] = np.mean(data.Y[data.X == data.X[0]]) - self.guess[0]
         # Determine Kr
-        self.guess[2] = 10 ** ((np.log10(set.X[0]) + np.log10(set.X[-1])) / 2)
+        self.guess[2] = 10 ** ((np.log10(data.X[0]) + np.log10(data.X[-1])) / 2)
         # Determine nH  
-        LinRegressX = np.log10(set.X[set.Y < np.amax(set.Y)]) - np.log10(self.guess[2])
-        ratio = set.Y[set.Y < np.amax(set.Y)] / np.amax(set.Y)
+        LinRegressX = np.log10(data.X[data.Y < np.amax(data.Y)]) - np.log10(self.guess[2])
+        ratio = data.Y[data.Y < np.amax(data.Y)] / np.amax(data.Y)
         LinRegressY = np.log10(ratio / (1 - ratio))
         slope, intercept, r_value, p_value, std_err = stats.linregress(
             LinRegressX, LinRegressY)

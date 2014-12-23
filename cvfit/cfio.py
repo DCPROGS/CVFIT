@@ -50,8 +50,14 @@ def string_liklimits(func, limits):
     for i in range(len(func.names)):
         str += '\nParameter {0:d}: {1}\t= {2:.6g}'.format(i+1, func.names[i], func.pars[i])
         if not func.fixed[i]:
-            str += '\tLOWER = {0:.6g}'.format(limits[j][0])
-            str += '\tUPPER = {0:.6g}'.format(limits[j][1])
+            try:
+                str += '\tLOWER = {0:.6g}'.format(limits[j][0])
+            except:
+                str += '\tLOWER limit not found'
+            try:
+                str += '\tUPPER = {0:.6g}'.format(limits[j][1])
+            except:
+                str += '\tUPPER limit not found'
             j += 1
         else:
             str += '\t(fixed)'

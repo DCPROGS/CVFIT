@@ -12,18 +12,37 @@ class XYDataSet(object):
         self._weightmode = 1
 
     def from_columns(self, X, Y, S=None):
-        # Keep track of the original data
-        self.Xoriginal, self.Yoriginal, self.Soriginal = X, Y, S
+        self.X, self.Y, self.S = X, Y, S
+        self.W = np.ones((len(self.X)))
+        self.sort()
+        
+    def pool(self, X, Y, S):
+        self.X = np.hstack((self.X, X))
+        self.Y = np.hstack((self.Y, Y))
+        self.S = np.hstack((self.S, S))
+        self.W = np.ones((len(self.X)))
+        self.sort()
+        self.title = 'Pooled data'
+        
+    def sort(self):
         # Sort the data according to concentration
-        temp = np.vstack((self.Xoriginal, self.Yoriginal, self.Soriginal))
+        temp = np.vstack((self.X, self.Y, self.S, self.W))
         temp.sort()
         self.X = temp[0]
         self.Y = temp[1]
         self.S = temp[2]
-        self.W = np.ones((len(self.X)))
+        self.W = temp[3]
 
     def size(self):
         return len(self.X)
+    def Xmin(self):
+        return np.min(self.X)
+    def Xmax(self):
+        return np.max(self.X)
+    def Ymin(self):
+        return np.min(self.Y)
+    def Ymax(self):
+        return np.max(self.Y)
     
     def _set_weightmode(self, weightmode):
         """
