@@ -9,7 +9,7 @@ class XYDataSet(object):
         self.S = [] # Standard deviation of the mean
         self.W = [] # Weight
         self.title = None
-        self._weightmode = None
+        self._weightmode = 1
 
     def from_columns(self, X, Y, S=None):
         # Keep track of the original data

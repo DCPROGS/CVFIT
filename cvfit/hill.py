@@ -3,28 +3,29 @@ from scipy import stats
 import numpy as np
 
 class Hill(object):
-    def __init__(self, pars=None):
+    def __init__(self, eqname, pars=None):
         """
         pars = [Ymin, Ymax, EC50, nH]
         """
+        self.eqname = eqname
         self.pars = pars
         self.fixed = []
         self.names = ['Ymin', 'Ymax', 'EC50', 'nH  ']
         self.data = None
         self.guess = None
     
-    def equation(self, conc):
+    def equation(self, conc, coeff):
         '''
         The hill equation.
         '''
-        return (self.pars[0] + (self.pars[1] * (conc / self.pars[2]) ** self.pars[3]) / 
-            (1 + (conc / self.pars[2]) ** self.pars[3]))
+        return (coeff[0] + (coeff[1] * (conc / coeff[2]) ** coeff[3]) / 
+            (1 + (conc / coeff[2]) ** coeff[3]))
             
     def to_fit(self, theta, conc):
         for each in np.nonzero(self.fixed)[0]:   
             theta = np.insert(theta, each, self.pars[each])
         self.pars = theta
-        return self.equation(conc)
+        return self.equation(conc, self.pars)
     
     def get_theta(self):
         return self.pars[np.nonzero(np.invert(self.fixed))[0]]
@@ -70,6 +71,7 @@ class Hill(object):
 #        elif self.Component == 2:
 #            print 'Two Components fitting is not completed.'
 #            sys.exit(0)
-        self. pars = guess.copy()
+        self.pars = guess.copy()
+        self.guess = guess.copy()
         return guess
 

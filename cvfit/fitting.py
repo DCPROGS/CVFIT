@@ -8,25 +8,27 @@ from cvfit import cfio
 from cvfit import errors
 from cvfit.errors import residuals, SSD, SSDlik
 
-
-def session(set, eq):
-
+def set_guesses(set, eq):
     guesses = eq.guesses(set)
-    theta = guesses[np.nonzero(np.invert(eq.fixed))[0]]
-
+    return eq
+    
+def do_fit(theta, set, eq):
+    
     # Least square fitting
     coeffs, cov, dict, mesg, ier = optimize.leastsq(residuals, theta,
         args=(eq, set.X, set.Y, set.W), full_output=1)
     print '\n\n\t' + set.title + ' fit finished'
-    #print 'coeffs=', coeffs
-    #print 'cov=', cov
-    #print '# fuction evaluation =', dict['nfev']
+    print 'Number of fuction evaluation =', dict['nfev']
     #print 'mesg=', mesg
     #print 'ier=', ier
+    #print 'cov=', cov
+    return coeffs
+    
+def calculate_errors(coeffs, set, eq):
 
     Smin = SSD(coeffs, eq, set.X, set.Y, set.W)
     #print '\n SSD \n', Smin
-    hes = errors.hessian(coeffs, eq, set)
+    #hes = errors.hessian(coeffs, eq, set)
     #print '\n Observed information matrix = \n', hes
     covar = errors.covariance_matrix(coeffs, eq, set)
     #print '\n Covariance matrix = \n', covar
@@ -35,7 +37,6 @@ def session(set, eq):
     aproxSD = errors.approximateSD(coeffs, eq, set)
     CVs = 100.0 * aproxSD / coeffs
 
-    print 'Number of fuction evaluation =', dict['nfev']
     print('Number of point fitted = {0:d}'.format(set.size()))
     kfit = len(np.nonzero(np.invert(eq.fixed))[0])
     print('Number of parameters estimated = {0:d}'.format(kfit))
@@ -70,31 +71,53 @@ def load_data(example=False):
             "/Example/Example.csv")
     else:
         filename = cfio.ask_for_file()
-    
     try:
         allsets = cfio.read_sets_from_csv(filename, col=2)
-        print('File {0} loaded'.format(filename))
-        print('{0:d} sets found.'.format(len(allsets)))
-
     except ValueError:
-        print('Oops! File did not load properly...')
+        print('fitting.py: WARNING: Oops! File did not load properly...')
+    return allsets, filename
 
-    #TODO: Choose data sets to fit if file contains multiple datasets
-    sets = allsets
+def set_weights(sets):
+    """ 
+    Choose weighting method. 
+    """
+    
+    weightingmodes = ['1'] #, '5']
+    mode2 = True
+    mode4 = True
+    for set in sets:
+        if set.S.any() == 0:
+            mode2 = False
+        for i in np.unique(set.X):
+            if len(np.where(set.X == i)[0]) == 1:
+                mode4 = False
+    
+    if mode2:
+        weightingmodes.append('2')
+        weightingmodes.append('3')
+    if mode4:
+        weightingmodes.append('4')
 
-    # Select weighting method
-    print('Please select the weighting method now:')
+    print('\nPlease select the weighting method now:')
     print '1: Weights constant; errors from residuals (Default).'
-    print '2: Weights from specified s(Y); errors from weights.'
-    weightmode = cfio.check_input('Mode number: ', ['1', '2'], 1)
-    #weightmode = 1
+    if mode2:
+        print '2: Weights from specified s(Y); errors from weights.'
+        print('3: Weights from specified n, the number of values in the' +
+            ' average; errors from weights.')
+    else:
+        print ('2, 3: s(Y) or n are not specified for some or all pints.' + 
+            ' Weights cannot by specified from s(Y) or n.')
+    if mode4:
+        print('4: Weights from s(Y) calculated from Y repeats at the same X;' +
+            ' errors from weights.')
+    else:
+        print ('4: s(Y) cannot be calculated because some or all X have only' +
+            ' one repeat. Weights cannot by specified from s(Y).')
+    print '5: Arbitrary weights entered by hand now (NOT IMPLEMENTED YET).'
+        
+    weightmode = cfio.check_input('Mode number [1]: ', weightingmodes, 1)
     for each in sets:
         each.weightmode = weightmode
-
-    for i in range(len(sets)):
-            print '\nSet #{0:d}:'.format(i+1)
-            print sets[i]
-
     return sets
 
 def general_settings():
@@ -105,13 +128,7 @@ def general_settings():
     print '1- fit each set separately [Default].'
     #fit_separate = cfio.check_input('0 or 1: ', ['0', '1'], 1)
     general_settings['fit_separate'] = 1
-
-    print '\nAvailable equations:'
-    print '1. Hill equation'
-    #ieq = cfio.check_input('Choose equation to fit [1] :', ['1'], 1)
-    #if ieq == 1:
-    #    fit_hill_equation(filename, celllist, report)
-
+    
     print 'Do you want to select fit settings separately?'
     print '0- use same settings for all datasets (Default);'
     print '1- set settings for each dataset separately.'
@@ -119,3 +136,16 @@ def general_settings():
     general_settings['same_settings'] = 0
 
     return general_settings
+    
+
+def choose_equation():
+    print '\nAvailable equations:'
+    print '1. Hill equation'
+    print '2. Langmuir equation'
+    eq = 'Hill'
+    ieq = cfio.check_input('Choose equation to fit [1] : ', ['1', '2'], 1)
+    if ieq == 2:
+        eq = 'Langmuir'
+    return eq
+
+    
