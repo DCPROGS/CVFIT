@@ -26,6 +26,9 @@ def plot_hill_fit_result_single(filename, set, equation,
         handles.append(pl4)
     # Plot guess curve
     if plotguess:
+        logplotX = np.log10(set.X)
+        plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+                                  np.ceil(np.amax(logplotX) + 1), 100)
         plotYg = equation.equation(plotX, equation.guess)
         pl2, = ax.plot(plotX, plotYg, 'y-', label='guess')
         handles.append(pl2)

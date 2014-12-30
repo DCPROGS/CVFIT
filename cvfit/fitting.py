@@ -1,4 +1,4 @@
-import os
+import os, sys
 from math import sqrt
 from scipy import optimize
 import numpy as np
@@ -9,13 +9,14 @@ from cvfit import errors
 from cvfit.errors import residuals, SSD, SSDlik
 
 class SingleFitSession(object):
-    def __init__(self, dataset, equation):
+    def __init__(self, dataset, equation, output=sys.stdout):
         """
         """
+        self.output = output
         self.data = dataset
         self.eq = equation
         self.eq.propose_guesses(self.data)
-        print('\nFitting session for ' + self.data.title + ' initialised!')
+        self.output.write('Fitting session for ' + self.data.title + ' initialised!')
         
     def fit(self):
         # Least square fitting
@@ -23,8 +24,9 @@ class SingleFitSession(object):
             args=(self.eq, self.data.X, self.data.Y, self.data.W), full_output=1)
         self.eq.theta = coeffs
         
-        print '\t' + self.data.title + ' fit finished'
-        print 'Number of fuction evaluation =', dict['nfev']
+        self.output.write('\n*************************************************')
+        self.output.write('\t' + self.data.title + ' fit finished')
+        self.output.write('Number of fuction evaluation = {0:d}'.format(dict['nfev']))
         #print 'mesg=', mesg
         #print 'ier=', ier
         #print 'cov=', cov
@@ -44,31 +46,32 @@ class SingleFitSession(object):
         aproxSD = errors.approximateSD(self.eq.theta, self.eq, self.data)
         CVs = 100.0 * aproxSD / self.eq.theta
 
-        print('Number of point fitted = {0:d}'.format(self.data.size()))
+        self.output.write('Number of point fitted = {0:d}'.format(self.data.size()))
         kfit = len(np.nonzero(np.invert(self.eq.fixed))[0])
-        print('Number of parameters estimated = {0:d}'.format(kfit))
+        self.output.write('Number of parameters estimated = {0:d}'.format(kfit))
         ndf = self.data.size() - kfit
-        print('Degrees of freedom = {0:d}'.format(ndf))
-        print cfio.string_estimates(self.eq, aproxSD, CVs)
+        self.output.write('Degrees of freedom = {0:d}'.format(ndf))
+        self.output.write(cfio.string_estimates(self.eq, aproxSD, CVs))
 
         var = Smin / ndf
         Sres, Lmax = sqrt(var), -SSDlik(self.eq.theta, self.eq, self.data)
-        print ('\nResidual error SD = {0:.3f} (variance = {1:.3f})'.format(Sres, var))
-        print ('Minimum SSD = {0:.3f}; \tMax log-likelihood = {1:.3f}'.format(Smin, Lmax))
-        print '\nCorrelation matrix = \n', correl
+        self.output.write('\nResidual error SD = {0:.3f} (variance = {1:.3f})'.format(Sres, var))
+        self.output.write('Minimum SSD = {0:.3f}; \tMax log-likelihood = {1:.3f}'.format(Smin, Lmax))
+        self.output.write('\nCorrelation matrix = [!!!! PRINTOUT OF CORRELATION MATRIX NOT IMPLEMENTED YET. SORRY.\n')
+#        self.output.write(correl)
         if np.any(np.absolute(correl - np.identity(kfit)) > 0.9):
-            print("\nWARNING: SOME PARAMETERS ARE STRONGLY CORRELATED (coeff > 0.9); try different guesses")
+            self.output.write("\nWARNING: SOME PARAMETERS ARE STRONGLY CORRELATED (coeff > 0.9); try different guesses")
 
         tval = errors.tvalue(ndf)
         m = tval * tval / 2.0
         clim = sqrt(2. * m)
         Lcrit = Lmax - m
-        print '\nLIKELIHOOD INTERVALS'
-        print ('{0:.3g}-unit Likelihood Intervals'.format(m) +
+        self.output.write('\nLIKELIHOOD INTERVALS')
+        self.output.write('{0:.3g}-unit Likelihood Intervals'.format(m) +
             ' (equivalent SD for Gaussian- {0:.3g})'.format(clim))
-        print 'Lmax= {0:.6g}; Lcrit= {1:.6g}'.format(Lmax, Lcrit)
+        self.output.write('Lmax= {0:.6g}; Lcrit= {1:.6g}'.format(Lmax, Lcrit))
         Llimits = errors.lik_intervals(self.eq.theta, aproxSD, m, self.eq, self.data)
-        print cfio.string_liklimits(self.eq, Llimits)
+        self.output.write(cfio.string_liklimits(self.eq, Llimits))
 
 
 def load_data(example=False):

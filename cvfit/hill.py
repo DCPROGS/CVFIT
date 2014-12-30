@@ -8,12 +8,17 @@ class Hill(object):
         pars = [Ymin, Ymax, EC50, nH]
         """
         self.eqname = eqname
+        self.ncomp = 1
         self.pars = pars
-        self.fixed = []
+        if eqname == 'Hill':
+            self.fixed = [True, False, False, False]
+        if eqname == 'Langmuir':
+            self.fixed = [True, False, False, True]
         self.names = ['Ymin', 'Ymax', 'EC50', 'nH  ']
         self.data = None
         self.guess = None
         self._theta = None
+        self.normalised = False
 
         
     def equation(self, conc, coeff):
@@ -41,19 +46,17 @@ class Hill(object):
         '''
         Nomalise Y to the fitted maximum.
         '''
-
-        if data.trend == 1:
+        if data.increase:
             # Nomalise the coefficients by fixing the Y(0) and Ymax
             self.normpars = self.pars.copy()
             self.normpars[0], self.normpars[1] = 0, 1
-            # Nomalise the response
             data.normY = (data.Y - self.pars[0]) / self.pars[1]
-        elif data.trend == -1:
+        else:
             # Nomalise the coefficients by fixing the Y(0) and Ymax
             self.normpars = self.pars.copy()
             self.normpars[0], self.normpars[1] = 1, 0
-            # Nomalise the response
             data.normY = 1 - (data.Y - self.pars[1]) / self.pars[0]
+        self.normalised = True
     
     def propose_guesses(self, data):
         '''
@@ -62,12 +65,7 @@ class Hill(object):
         
         #if self.Component == 1:
         self.guess = np.empty(4)
-        slope, intercept, r_value, p_value, std_err = stats.linregress(data.X, data.Y)
-        if slope > 0:
-            data.trend = 1
-        else:
-            data.trend = -1
-        if data.trend == 1: # Response increases with concentration
+        if data.increase: # Response increases with concentration
             # Determine Y(0)
             if self.fixed[0]:
                 self.guess[0] = 0

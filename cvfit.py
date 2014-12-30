@@ -24,17 +24,12 @@ if __name__ == "__main__":
     
     eqname = fitting.choose_equation()
     print eqname
-    if eqname == 'Hill':
+    if eqname == 'Hill' or eqname == 'Langmuir':
         from cvfit.hill import Hill as eqfit
-        fixed = [True, False, False, False]
-    if eqname == 'Langmuir':
-        from cvfit.hill import Hill as eqfit
-        fixed = [True, False, False, True]
-        
+         
     fitsessions = []
     for set in sets:
         equation = eqfit(eqname)
-        equation.fixed = fixed
         fsession = SingleFitSession(set, equation)
         fsession.fit()
         fsession.calculate_errors()
@@ -51,7 +46,6 @@ if __name__ == "__main__":
     
     pooldata.weightmode = 1
     equation = eqfit(eqname)
-    equation.fixed = fixed
     fsession = SingleFitSession(pooldata, equation)
     fsession.fit()
     fsession.calculate_errors()

@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import stats
 
 class XYDataSet(object):
     """
@@ -10,11 +11,13 @@ class XYDataSet(object):
         self.W = [] # Weight
         self.title = None
         self._weightmode = 1
+        self.increase = None
 
     def from_columns(self, X, Y, S=None):
         self.X, self.Y, self.S = X, Y, S
         self.W = np.ones((len(self.X)))
         self.sort()
+        self._set_trend()
         
     def pool(self, X, Y, S):
         self.X = np.hstack((self.X, X))
@@ -22,6 +25,7 @@ class XYDataSet(object):
         self.S = np.hstack((self.S, S))
         self.W = np.ones((len(self.X)))
         self.sort()
+        self._set_trend()
         self.title = 'Pooled data'
         
     def sort(self):
@@ -61,6 +65,13 @@ class XYDataSet(object):
         return np.min(self.Y)
     def Ymax(self):
         return np.max(self.Y)
+    
+    def _set_trend(self):
+        slope, intercept, r_value, p_value, std_err = stats.linregress(self.X, self.Y)
+        if slope > 0:
+            self.increase = True
+        else:
+            self.increase = False
     
     def _set_weightmode(self, weightmode):
         """
