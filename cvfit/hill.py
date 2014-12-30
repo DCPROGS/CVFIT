@@ -1,4 +1,5 @@
 
+import math
 from scipy import stats
 import numpy as np
 
@@ -12,14 +13,14 @@ class Hill(object):
         self.pars = pars
         if eqname == 'Hill':
             self.fixed = [True, False, False, False]
+            self.names = ['Ymin', 'Ymax', 'EC50', 'nH  ']
         if eqname == 'Langmuir':
             self.fixed = [True, False, False, True]
-        self.names = ['Ymin', 'Ymax', 'EC50', 'nH  ']
+            self.names = ['Ymin', 'Ymax', 'EC50']
         self.data = None
         self.guess = None
         self._theta = None
         self.normalised = False
-
         
     def equation(self, conc, coeff):
         '''
@@ -90,10 +91,11 @@ class Hill(object):
         slope, intercept, r_value, p_value, std_err = stats.linregress(
             LinRegressX, LinRegressY)
         self.guess[3] = slope
+        if self.eqname == 'Langmuir':
+            self.guess[3] = slope / math.fabs(slope)
 
 #        elif self.Component == 2:
 #            print 'Two Components fitting is not completed.'
 #            sys.exit(0)
         self.pars = self.guess.copy()
-        #return self.guess
 

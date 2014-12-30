@@ -70,16 +70,21 @@ class EquationBlock(QWidget):
         
         eqLabel = QLabel("Please choose equation:                                     ")
         self.eqTitles = [
-        '(1) Polynomial (inc. straight line)',
-        '(2) Langmuir hyperbola(s) (inc. or dec.)',
-        '(3) Hill equation(s) (inc. or dec./common K or max)',
-        '(4) Langmuir hyperbola(s) plus straight line',
-        '(5) Hill equation(s) plus straight line',
-        '(6) Power function y=ybar*(x/x0)^n (linear on log-log plot)',
-        '(7) Binding inhibition curve (parameter=KB)']
+        '(1) Hill equation(s) (inc. or dec./common K or max)',
+        '(2) Langmuir hyperbola(s) plus straight line',
+        #'(3) Polynomial (inc. straight line)',
+        #'(4) Langmuir hyperbola(s) (inc. or dec.)',
+        #'(5) Hill equation(s) plus straight line',
+        #'(6) Power function y=ybar*(x/x0)^n (linear on log-log plot)',
+        #'(7) Binding inhibition curve (parameter=KB)'
+        ''
+        ]
         self.eqList = QListWidget()
-        for name in self.eqTitles:
-            self.eqList.addItem(name)
+        for i in range(len(self.eqTitles)):
+            item = QListWidgetItem(self.eqTitles[i])
+            self.eqList.addItem(item)
+            if i == 0:
+                item.setSelected(True)
 
         eqButton = QPushButton("&Load equation")
         self.connect(eqButton, SIGNAL('clicked()'), self.on_equation)
@@ -112,11 +117,11 @@ class EquationBlock(QWidget):
         
     def on_equation(self):
         row = self.eqList.currentRow()
-        if row == 1:
-            eqname = 'Langmuir'
-            eqtype = 'Hill'
-        elif row == 2:
+        if row == 0:
             eqname = 'Hill'
+            eqtype = 'Hill'
+        elif row == 1:
+            eqname = 'Langmuir'
             eqtype = 'Hill'
         else:
             self.parent.log.write("This eqation is not implemented yet.")
