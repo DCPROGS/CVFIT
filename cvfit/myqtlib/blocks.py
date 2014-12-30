@@ -142,16 +142,34 @@ class TextBlock(QWidget):
         self.textBox = QTextBrowser()
         self.parent.log = mqt.PrintLog(self.textBox) #, sys.stdout)    
         mqt.startInfo(self.parent.log)
-        textVBox = QVBoxLayout()
-        textVBox.addWidget(self.textBox)
+#        textVBox = QVBoxLayout()
+#        textVBox.addWidget(self.textBox)
+        
+        buttonHBox = QHBoxLayout()
         aboutButton = QPushButton("&ABOUT")
         self.connect(aboutButton, SIGNAL("clicked()"), self.on_about)
-        textVBox.addWidget(aboutButton)
+        buttonHBox.addWidget(aboutButton)
+        saveButton = QPushButton("Save Printout")
+        self.connect(saveButton, SIGNAL("clicked()"), self.on_save)
+        buttonHBox.addWidget(saveButton)
         
         layout = QVBoxLayout(self)
         layout.addWidget(self.textBox)
-        layout.addWidget(aboutButton)
+        layout.addLayout(buttonHBox)
         
+    def on_save(self):
+        printOutFilename, filt = QFileDialog.getSaveFileName(self,
+                "Save as PRT file...", ".prt",
+                "PRT files (*.prt)")
+
+        self.textBox.selectAll()
+        text = self.textBox.toPlainText()
+        fout = open(printOutFilename,'w')
+        fout.write(text)
+        fout.close()
+
+        self.textBox.append('Session saved to printout file:')
+        self.textBox.append(printOutFilename)
         
     def on_about(self):
         dialog = mqt.AboutDlg(self)
