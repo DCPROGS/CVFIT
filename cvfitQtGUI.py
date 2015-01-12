@@ -35,6 +35,10 @@ class CVFITgui(QMainWindow):
         self.log = None
         self.data = None
         self.fits = None
+        self.pooledfit = None
+        self.eqfit = None
+        self.eqname = None
+        self.eqtype = None
         self.fname = ''
         
         upperHBox = QHBoxLayout()

@@ -5,6 +5,8 @@ from PySide.QtGui import *
 from PySide.QtCore import *
 
 from cvfit import cfio
+from cvfit import data
+from cvfit.fitting import SingleFitSession
 import cvfit.myqtlib.myqtcommon as mqt
 import cvfit.myqtlib.dialogs as dialogs
 
@@ -88,10 +90,14 @@ class EquationBlock(QWidget):
 
         eqButton = QPushButton("&Load equation")
         self.connect(eqButton, SIGNAL('clicked()'), self.on_equation)
-        guessButton = QPushButton("&Initial guesses")
+        guessButton = QPushButton("Initial guesses")
         self.connect(guessButton, SIGNAL('clicked()'), self.on_guess)
-        fitButton = QPushButton("&Fit")
+        fitButton = QPushButton("Fit")
         self.connect(fitButton, SIGNAL('clicked()'), self.on_fit)
+        normButton = QPushButton("Normalise and replot")
+        self.connect(normButton, SIGNAL('clicked()'), self.on_normalise)
+        poolButton = QPushButton("Pool normalised and fit")
+        self.connect(poolButton, SIGNAL('clicked()'), self.on_pool)
         
         layout = QVBoxLayout(self)
         layout.addWidget(eqLabel)
@@ -99,7 +105,26 @@ class EquationBlock(QWidget):
         layout.addWidget(eqButton)
         layout.addWidget(guessButton)
         layout.addWidget(fitButton)
+        layout.addWidget(normButton)
+        layout.addWidget(poolButton)
         layout.addStretch(1)
+        
+    def on_pool(self):
+        pooldata = data.XYDataSet()
+        for session in self.parent.fits:
+            pooldata.pool(session.data.X, session.data.normY, session.data.S)
+        pooldata.weightmode = 1
+        fsession = SingleFitSession(pooldata, self.parent.eqfit, self.parent.log)
+        fsession.fit()
+        fsession.calculate_errors()
+        fsession.data.average_pooled()
+        self.parent.pooledfit = fsession
+        self.parent.plotblk.on_show(plotPooled=True)
+        
+    def on_normalise(self):
+        for session in self.parent.fits:
+            session.eq.normalise(session.data)
+        self.parent.plotblk.on_show(plotNorm=True)
         
     def on_fit(self):
         for fs in self.parent.fits:
@@ -120,12 +145,18 @@ class EquationBlock(QWidget):
         if row == 0:
             eqname = 'Hill'
             eqtype = 'Hill'
+            from cvfit.hill import Hill as eqfit
         elif row == 1:
             eqname = 'Langmuir'
             eqtype = 'Hill'
+            from cvfit.hill import Hill as eqfit
         else:
             self.parent.log.write("This eqation is not implemented yet.")
             self.parent.log.write("Please, choose other equation.")
+            
+        self.parent.eqname = eqname
+        self.parent.eqtype = eqtype
+        self.parent.eqfit = eqfit(eqname)
         
         self.parent.fits = []
         dialog = dialogs.EquationDlg(self.parent.data, eqtype, eqname, self.parent.log)
@@ -199,37 +230,60 @@ class PlotBlock(QWidget):
         self.plot_legend = self.legendChB.isChecked()
         self.on_show()
         
-    def on_show(self, plotGuesses=False, plotFit=False):
+    def on_show(self, plotGuesses=False, 
+        plotFit=False, plotNorm=False, plotPooled=False):
         self.parent.canvas.axes.clear()
         self.parent.canvas.axes.grid(True)
         
-        for set in self.parent.data:
-            self.parent.canvas.axes.semilogx(set.X, set.Y, 'o', label=set.title)
+            
+        if plotNorm:
+            for session in self.parent.fits:
+                self.parent.canvas.axes.semilogx(session.data.X, 
+                    session.data.normY, 'o', label=session.data.title)
+                logplotX = np.log10(session.data.X)
+                plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+                    np.ceil(np.amax(logplotX)), 100)
+                plotYg = session.eq.equation(plotX, session.eq.normpars)
+                self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
+                
+        elif plotPooled:
+            self.parent.canvas.axes.plot(self.parent.pooledfit.data.avX, 
+                self.parent.pooledfit.data.avY, 'ro', label='average')
+            self.parent.canvas.axes.errorbar(self.parent.pooledfit.data.avX, 
+                self.parent.pooledfit.data.avY, 
+                yerr=self.parent.pooledfit.data.avS, fmt='none', ecolor='r')
+            logplotX = np.log10(self.parent.pooledfit.data.avX)
+            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+                np.ceil(np.amax(logplotX)), 100)
+            plotYg = self.parent.pooledfit.eq.equation(plotX,
+                self.parent.pooledfit.eq.pars)
+            self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
+            
+        else:
+            for set in self.parent.data:
+                self.parent.canvas.axes.semilogx(set.X, set.Y, 'o', label=set.title)
             
         if plotGuesses:
             for session in self.parent.fits:
                 logplotX = np.log10(set.X)
                 plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
                     np.ceil(np.amax(logplotX)), 100)
-                plotYg = session.eq.equation(plotX, session.eq.guess)
+                plotYg = session.eq.equation(plotX, session.eq.pars)
                 self.parent.canvas.axes.semilogx(plotX, plotYg, 'y-')
-        
+                
         if plotFit:
             for session in self.parent.fits:
-                logplotX = np.log10(set.X)
+                logplotX = np.log10(session.data.X)
                 plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
                     np.ceil(np.amax(logplotX)), 100)
                 plotYg = session.eq.equation(plotX, session.eq.pars)
                 self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
+                
+
 
         if self.legendChB.isChecked():
             self.parent.canvas.axes.legend(loc=2)
             
-            
-        
-        #self.parent.canvas.axes.set_ylim(0, 1)
-        #self.parent.canvas.axes.xaxis.set_ticks_position('bottom')
-        #self.parent.canvas.axes.yaxis.set_ticks_position('left')
         self.parent.canvas.draw()
         
         
