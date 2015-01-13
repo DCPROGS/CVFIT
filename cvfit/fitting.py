@@ -16,6 +16,7 @@ class SingleFitSession(object):
         self.data = dataset
         self.eq = equation
         self.eq.propose_guesses(self.data)
+        self.output.write('********************************************************')
         self.output.write('Fitting session for ' + self.data.title + ' initialised!')
         
     def fit(self):
@@ -72,6 +73,7 @@ class SingleFitSession(object):
         self.output.write('Lmax= {0:.6g}; Lcrit= {1:.6g}'.format(Lmax, Lcrit))
         Llimits = errors.lik_intervals(self.eq.theta, aproxSD, m, self.eq, self.data)
         self.output.write(cfio.string_liklimits(self.eq, Llimits))
+        self.output.write('\n')
 
 
 def load_data(example=False):

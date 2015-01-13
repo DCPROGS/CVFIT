@@ -127,9 +127,18 @@ class EquationBlock(QWidget):
         self.parent.plotblk.on_show(plotNorm=True)
         
     def on_fit(self):
+        progressDlg = QProgressDialog('Fitting data set {0:d}'.format(1),
+                                 "Cancel", 1, len(self.parent.fits))
+        progressDlg.setWindowTitle('Fitting...')
+        i = 1
         for fs in self.parent.fits:
             fs.fit()
             fs.calculate_errors()
+            progressDlg.setValue(i)
+            i += 1
+            progressDlg.setLabelText('Fitting data set {0:d}'.format(i))
+            if progressDlg.wasCanceled():
+                break
         self.parent.plotblk.on_show(plotFit=True)
         
     def on_guess(self):
@@ -247,11 +256,11 @@ class PlotBlock(QWidget):
                 self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
                 
         elif plotPooled:
-            self.parent.canvas.axes.plot(self.parent.pooledfit.data.avX, 
-                self.parent.pooledfit.data.avY, 'ro', label='average')
+#            self.parent.canvas.axes.plot(self.parent.pooledfit.data.avX,
+#                self.parent.pooledfit.data.avY, 'ro', label='average')
             self.parent.canvas.axes.errorbar(self.parent.pooledfit.data.avX, 
                 self.parent.pooledfit.data.avY, 
-                yerr=self.parent.pooledfit.data.avS, fmt='none', ecolor='r')
+                yerr=self.parent.pooledfit.data.avS, fmt='o', ecolor='b', label='average')
             logplotX = np.log10(self.parent.pooledfit.data.avX)
             plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
                 np.ceil(np.amax(logplotX)), 100)
