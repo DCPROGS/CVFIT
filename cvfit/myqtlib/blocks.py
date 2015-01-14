@@ -46,8 +46,13 @@ class DataBlock(QWidget):
                 "CSV files (*.csv);;TXT files (*.txt);;All files (*.*)")
         self.parent.log.write('\nLoading file: ' + filename)
         
+
+        dialog = dialogs.LoadDataDlg(filename)
+        if dialog.exec_():
+            self.allsets = dialog.return_data()
+        
         try:
-            self.allsets = cfio.read_sets_from_csv(filename, col=2)
+            #self.allsets = cfio.read_sets_from_csv(filename, col=2)
             self.dataListModel.clear()
             for set in self.allsets:
                 item = QStandardItem(set.title)

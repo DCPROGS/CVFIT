@@ -2,10 +2,67 @@ __author__="remis"
 __date__ ="$23-Feb-2010 10:29:31$"
 
 import sys
+import csv
+import numpy as np
 from PySide.QtGui import *
 from PySide.QtCore import *
 
+from cvfit import cfio
 from cvfit.fitting import SingleFitSession
+
+class LoadDataDlg(QDialog):
+    def __init__(self, filename, parent=None):
+        super(LoadDataDlg, self).__init__(parent)
+        self.setWindowTitle('Check data format...')
+        self.resize(600, 300)
+        layout = QVBoxLayout()
+        
+        self.filename = filename
+        self.col = 2
+        self.row = 0
+        
+        textBox = QTextBrowser()
+        layout.addWidget(textBox)
+        f = open(filename, 'rU')
+        txtdata = list(csv.reader(f, dialect=csv.excel_tab))
+        f.close()
+        for row in txtdata:
+            textBox.append(''.join(row))
+        
+        layout1 = QHBoxLayout()
+        layout1.addWidget(QLabel('How many header lines to skip?'))
+        self.rowSB = QSpinBox()
+        self.rowSB.setValue(0)
+        self.rowSB.setRange(0, 100)
+        self.rowSB.valueChanged.connect(self.on_changed)
+        layout1.addWidget(self.rowSB)
+        
+        layout2 = QHBoxLayout()
+        layout2.addWidget(QLabel('How many columns in each set (2 or 3)?'))
+        self.colSB = QSpinBox()
+        self.colSB.setValue(2)
+        self.colSB.setRange(2, 3)
+        self.colSB.valueChanged.connect(self.on_changed)
+        layout2.addWidget(self.colSB)
+        layout.addLayout(layout1)
+        layout.addLayout(layout2)
+        
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
+        self.connect(buttonBox, SIGNAL("accepted()"),
+             self, SLOT("accept()"))
+        self.connect(buttonBox, SIGNAL("rejected()"),
+             self, SLOT("reject()"))
+        layout.addWidget(buttonBox)     
+        self.setLayout(layout)
+        
+    def on_changed(self):
+        self.col = self.colSB.value()
+        self.row = self.rowSB.value()
+        
+    def return_data(self):
+        return cfio.read_sets_from_csv(self.filename, col=self.col, header=self.row)
+        
 
 class EquationDlg(QDialog):
     def __init__(self, data, eqtype='Hill', eqname='Hill', output=sys.stdout, parent=None):
