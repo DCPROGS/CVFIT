@@ -15,7 +15,11 @@ class XYDataSet(object):
 
     def from_columns(self, X, Y, S=None):
         self.X, self.Y, self.S = X, Y, S
-        self.W = np.ones((len(self.X)))
+        if self.S.any() == 0:
+            self.W = np.ones((len(self.X)))
+        else:
+            self.W = 1.0 / np.power(np.array(self.S), 2)
+            self._weightmode = 2
         self.sort()
         self._set_trend()
         
@@ -30,12 +34,20 @@ class XYDataSet(object):
         
     def sort(self):
         # Sort the data according to concentration
-        temp = np.vstack((self.X, self.Y, self.S, self.W))
-        temp.sort()
-        self.X = temp[0]
-        self.Y = temp[1]
-        self.S = temp[2]
-        self.W = temp[3]
+#        temp = np.vstack((self.X, self.Y))
+#        temp = np.vstack((temp, self.S))
+#        temp = np.vstack((temp, self.W))
+#        temp.sort()
+#        self.X = temp[0]
+#        self.Y = temp[1]
+#        self.S = temp[2]
+#        self.W = temp[3]
+        
+        idx = np.argsort(self.X)
+        self.X = self.X[idx]
+        self.Y = self.Y[idx]
+        self.S = self.S[idx]
+        self.W = self.W[idx]
         
     def average_pooled(self):
         '''

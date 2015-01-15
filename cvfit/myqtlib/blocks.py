@@ -53,14 +53,17 @@ class DataBlock(QWidget):
         
         try:
             #self.allsets = cfio.read_sets_from_csv(filename, col=2)
+            self.parent.log.write("Loaded: " + 
+                os.path.split(str(filename))[1])
             self.dataListModel.clear()
             for set in self.allsets:
                 item = QStandardItem(set.title)
                 item.setCheckState(Qt.Checked)
                 item.setCheckable(True)
                 self.dataListModel.appendRow(item)
-            self.parent.log.write("Loaded: " + 
-                os.path.split(str(filename))[1])
+                self.parent.log.write('\n'+set.title)
+                self.parent.log.write(str(set))
+            
             
             self.parent.data = self.allsets
             self.parent.fname = filename
