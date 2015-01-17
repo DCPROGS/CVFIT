@@ -3,7 +3,6 @@ __date__ ="$23-Feb-2010 10:29:31$"
 
 import sys
 import csv
-import numpy as np
 from PySide.QtGui import *
 from PySide.QtCore import *
 
@@ -15,11 +14,12 @@ class LoadDataDlg(QDialog):
         super(LoadDataDlg, self).__init__(parent)
         self.setWindowTitle('Check data format...')
         self.resize(600, 300)
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         
         self.filename = filename
         self.col = 2
         self.row = 0
+        self.weight = 1
         
         textBox = QTextBrowser()
         layout.addWidget(textBox)
@@ -47,6 +47,17 @@ class LoadDataDlg(QDialog):
         layout.addLayout(layout1)
         layout.addLayout(layout2)
         
+        layout.addWidget(QLabel("Please select the weighting method now:"))
+        self.group1 = QButtonGroup(self)
+        self.rb1 = QRadioButton("Weights constant; errors from residuals (Default).")
+        self.rb1.setChecked(True)
+        self.group1.addButton(self.rb1)
+        layout.addWidget(self.rb1)
+        self.rb2 = QRadioButton("Weights from specified s(Y); errors from weights.")
+        self.group1.addButton(self.rb2)
+        layout.addWidget(self.rb2)
+        self.group1.buttonClicked.connect(self.on_changed)
+                
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
         buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
         self.connect(buttonBox, SIGNAL("accepted()"),
@@ -54,14 +65,18 @@ class LoadDataDlg(QDialog):
         self.connect(buttonBox, SIGNAL("rejected()"),
              self, SLOT("reject()"))
         layout.addWidget(buttonBox)     
-        self.setLayout(layout)
-        
+             
     def on_changed(self):
+        if self.group1.checkedId() == -2:
+            self.weight = 1
+        elif self.group1.checkedId() == -3:
+            self.weight = 2
         self.col = self.colSB.value()
         self.row = self.rowSB.value()
         
     def return_data(self):
-        return cfio.read_sets_from_csv(self.filename, col=self.col, header=self.row)
+        return cfio.read_sets_from_csv(self.filename, col=self.col,
+            header=self.row, weight=self.weight)
         
 
 class EquationDlg(QDialog):

@@ -278,7 +278,12 @@ class PlotBlock(QWidget):
             
         else:
             for set in self.parent.data:
-                self.parent.canvas.axes.semilogx(set.X, set.Y, 'o', label=set.title)
+                if set.S.any() == 0:
+                    self.parent.canvas.axes.semilogx(set.X, set.Y, 'o', label=set.title)
+                else: 
+                    self.parent.canvas.axes.errorbar(set.X, set.Y, yerr=set.S,
+                        fmt='o', label=set.title)
+                    self.parent.canvas.axes.set_xscale('log')
             
         if plotGuesses:
             for session in self.parent.fits:

@@ -63,7 +63,7 @@ def string_liklimits(func, limits):
             str += '\t(fixed)'
     return str
 
-def read_sets_from_csv(filename, col=2, header=0):
+def read_sets_from_csv(filename, col=2, header=0, weight=1):
     rawresult = np.genfromtxt(filename, delimiter=',',skip_header=header)
     setnum = rawresult.shape[1] / col
     setlist = []
@@ -79,5 +79,6 @@ def read_sets_from_csv(filename, col=2, header=0):
                rawresult[real, i * col + 1],
                rawresult[real, i * col + 2],)
         set.title = 'Set ' + str(i+1)
+        set.weightmode = weight
         setlist.append(set)
     return setlist
