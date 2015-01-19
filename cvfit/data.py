@@ -123,7 +123,7 @@ class XYDataSet(object):
                 print('data: WARNING : some SD equal to 0;' + 
                     'cannot be used for weights; reverting to weightmode = 1')
             else:
-                self.W = np.array(self.W) / np.power(np.array(self.S), 2)
+                self.W = 1.0 / np.power(np.array(self.S), 2)
     def _get_weightmode(self):
         return self._weightmode
     weightmode = property(_get_weightmode, _set_weightmode)
