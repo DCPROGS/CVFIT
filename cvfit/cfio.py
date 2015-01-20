@@ -63,8 +63,21 @@ def string_liklimits(func, limits):
             str += '\t(fixed)'
     return str
 
-def read_sets_from_csv(filename, col=2, header=0, weight=1):
-    rawresult = np.genfromtxt(filename, delimiter=',',skip_header=header)
+def read_sets_from_csv(filename, type, col=2, header=0, namesin=False, weight=1):
+    """
+    Read data from a txt or csv file in which X and Y (and SD) are in columns.
+    """
+    if type == 'csv':
+        delimit = ','
+    elif type == 'txt':
+        delimit = '\t'
+    if namesin:
+        f = open(filename, 'r')
+        nameline = f.readline().strip("\n")
+        names = nameline.split(delimit)
+        f.close()
+
+    rawresult = np.genfromtxt(filename, delimiter=delimit,skip_header=header)
     setnum = rawresult.shape[1] / col
     setlist = []
     for i in range(setnum):
@@ -82,3 +95,4 @@ def read_sets_from_csv(filename, col=2, header=0, weight=1):
         set.weightmode = weight
         setlist.append(set)
     return setlist
+

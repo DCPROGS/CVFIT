@@ -145,8 +145,6 @@ def covariance_matrix(theta, func, set):
         errvar = minssd / (set.size() - kfit)
     else:
         errvar = 1.0
-
-    print 'errvar=', errvar
     return cov * errvar
 
 def approximateSD(theta, func, args):

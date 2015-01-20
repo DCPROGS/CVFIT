@@ -17,6 +17,7 @@ class LoadDataDlg(QDialog):
         layout = QVBoxLayout(self)
         
         self.filename = filename
+        self.type = filename.split('.')[-1]
         self.col = 2
         self.row = 0
         self.weight = 1
@@ -75,8 +76,8 @@ class LoadDataDlg(QDialog):
         self.row = self.rowSB.value()
         
     def return_data(self):
-        return cfio.read_sets_from_csv(self.filename, col=self.col,
-            header=self.row, weight=self.weight)
+        return cfio.read_sets_from_csv(self.filename, self.type, col=self.col,
+            header=self.row, namesin=False, weight=self.weight)
         
 
 class EquationDlg(QDialog):
