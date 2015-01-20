@@ -24,7 +24,7 @@ def residuals(pars, func, X, Y, W):
     '''
     return W * (Y - func.to_fit(pars, X))
 
-def SSD(pars, func, X, Y, W):
+def SSD(pars, args):
     """
     Calculate weighted sum of squared deviations.
 
@@ -42,6 +42,7 @@ def SSD(pars, func, X, Y, W):
     SSD : float
         Weighted sum of squared deviations.
     """
+    func, X, Y, W = args[0], args[1], args[2], args[3]
     return np.sum(W * (Y - func.to_fit(pars, X))**2)
 
 def SSDlik(theta, func, set):
@@ -63,7 +64,7 @@ def SSDlik(theta, func, set):
     SSDlik : float
         Log likelihood of SSD function.
     """
-    S = SSD(theta, func, set.X, set.Y, set.W)
+    S = SSD(theta, (func, set.X, set.Y, set.W))
     Sres = math.sqrt(S / (set.size() - len(func.fixed)))
     return set.size() * math.log(math.sqrt(2 * math.pi) * Sres) + S / (2 * Sres**2)
 
@@ -78,21 +79,21 @@ def SSDlik_contour(x, num, theta, func, set):
 
 def optimise_deltas(theta, func, set):
     """ """
-    Lmax = -0.5 * SSD(theta, func, set.X, set.Y, set.W)
+    Lmax = -0.5 * SSD(theta, (func, set.X, set.Y, set.W))
     Lcrit = 1.005 * Lmax
     deltas = 0.1 * theta
-    L = -0.5 * SSD(theta + deltas, func, set.X, set.Y, set.W)
+    L = -0.5 * SSD(theta + deltas, (func, set.X, set.Y, set.W))
     if L > Lcrit:
         count = 0
         while L > Lcrit and count < 100:
             deltas *= 2
-            L = -0.5 * SSD(theta + deltas, func, set.X, set.Y, set.W)
+            L = -0.5 * SSD(theta + deltas, (func, set.X, set.Y, set.W))
             count += 1
     elif L < Lcrit:
         count = 0
         while L < Lcrit and count < 100:
             deltas *= 0.5
-            L = -0.5 * SSD(theta + deltas, func, set.X, set.Y, set.W)
+            L = -0.5 * SSD(theta + deltas, (func, set.X, set.Y, set.W))
             count += 1
     return deltas
 
@@ -112,9 +113,9 @@ def hessian(theta, func, set):
                 coe1[j1] += deltas[j1]
                 coe3[j1] -= deltas[j1]
                 hessian[i, j] = ((
-                    SSD(coe1, func, set.X, set.Y, set.W) -
-                    2.0 * SSD(theta, func, set.X, set.Y, set.W) +
-                    SSD(coe3, func, set.X, set.Y, set.W)) /
+                    SSD(coe1, (func, set.X, set.Y, set.W)) -
+                    2.0 * SSD(theta, (func, set.X, set.Y, set.W)) +
+                    SSD(coe3, (func, set.X, set.Y, set.W))) /
                     (deltas[j1]  ** 2))
             else:
                 coe1[i1] += deltas[i1]
@@ -126,10 +127,10 @@ def hessian(theta, func, set):
                 coe4[i1] -= deltas[i1]
                 coe4[j1] -= deltas[j1]
                 hessian[i, j] = ((
-                    SSD(coe1, func, set.X, set.Y, set.W) -
-                    SSD(coe2, func, set.X, set.Y, set.W) -
-                    SSD(coe3, func, set.X, set.Y, set.W) +
-                    SSD(coe4, func, set.X, set.Y, set.W)) /
+                    SSD(coe1, (func, set.X, set.Y, set.W)) -
+                    SSD(coe2, (func, set.X, set.Y, set.W)) -
+                    SSD(coe3, (func, set.X, set.Y, set.W)) +
+                    SSD(coe4, (func, set.X, set.Y, set.W))) /
                     (4 * deltas[i1] * deltas[j1]))
             j += 1
         i += 1
@@ -138,11 +139,14 @@ def hessian(theta, func, set):
 def covariance_matrix(theta, func, set):
     """ """
     cov = nplin.inv(hessian(theta, func, set))
-    minssd = SSD(theta, func, set.X, set.Y, set.W)
-    kfit = theta.size
-    #TODO: check if weights were used to calculate SSD. If not then
-    # calculate errvar.
-    errvar = minssd / (set.size() - kfit)
+    if set.weightmode == 1:
+        minssd = SSD(theta, (func, set.X, set.Y, set.W))
+        kfit = theta.size
+        errvar = minssd / (set.size() - kfit)
+    else:
+        errvar = 1.0
+
+    print 'errvar=', errvar
     return cov * errvar
 
 def approximateSD(theta, func, args):
@@ -232,6 +236,8 @@ def lik_intervals(theta, SD, m, func, set):
                 else:
                     found = True
                     xlowlim = (xlow1 + xhigh1) / 2
+                    if xlowlim < 0:
+                        xlowlim = None
                     #print 'lower limit found: ', xlowlim
                 iter += 1
             found = False
@@ -248,6 +254,8 @@ def lik_intervals(theta, SD, m, func, set):
                 else:
                     found = True
                     xhighlim = (xlow2 + xhigh2) / 2
+                    if xhighlim < 0:
+                        xhighlim = None
                     #print 'higher limit found: ', xhighlim
                 iter += 1
             Llimits.append([xlowlim, xhighlim])
