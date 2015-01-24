@@ -5,7 +5,8 @@ from pylab import *
 import prettyplotlib as ppl
 
 def plot_hill_fit_result_single(filename, set, equation, 
-    plotdata=True, plotfit=True, plotguess=False, plotaverage=False):
+    plotdata=True, plotfit=True, plotguess=False, plotaverage=False,
+    save_fig=False, save_name=None):
     '''
     Plot the original data with guess and fitted curve in log graph.
     '''
@@ -42,14 +43,14 @@ def plot_hill_fit_result_single(filename, set, equation,
         handles.append(pl3)
     
     legend(handles=handles, loc='lower right')
-    show()
+    
+    if save_fig:
+        fig.savefig(save_name)
+        close(fig)
+    else:
+        show()
 
-
-    #fig.savefig(filename[:-4] + '_' + set.title + '.png')
-    #plt.close(fig)
-
-
-def plot_hill_fit_result_multiple(fname, fs, norm=False):
+def plot_hill_fit_result_multiple(fname, fs, norm=False, save_fig=False, save_name=None):
     
     fig, ax = subplots()
     ax.set_xscale('log')
@@ -64,8 +65,6 @@ def plot_hill_fit_result_multiple(fname, fs, norm=False):
     xmax = math.ceil(math.log10(max([s.data.Xmax() for s in fs])))
     plotx = 10 ** np.linspace(xmin, xmax, 100)
     
-    
-
     handles = []
     for index, set in enumerate(fs):
         if norm:
@@ -81,7 +80,9 @@ def plot_hill_fit_result_multiple(fname, fs, norm=False):
                  color=ppl.colors.set2[index], label=(set.data.title+' fit'))
         handles.extend([pl1, pl2])
     legend(handles=handles, loc='upper left')
-    show()
-    #fig.savefig(fname[:-4] + '_all_fittedcurves' + '.png')
-    #plt.close(fig)
-
+    
+    if save_fig:
+        fig.savefig(save_name)
+        close(fig)
+    else:
+        show()

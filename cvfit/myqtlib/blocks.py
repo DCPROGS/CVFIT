@@ -6,9 +6,11 @@ from PySide.QtCore import *
 
 from cvfit import cfio
 from cvfit import data
+from cvfit import plots
 from cvfit.fitting import SingleFitSession
 import cvfit.myqtlib.myqtcommon as mqt
 import cvfit.myqtlib.dialogs as dialogs
+from cvfit.report import Report
 
 
 class DataBlock(QWidget):
@@ -51,26 +53,33 @@ class DataBlock(QWidget):
         if dialog.exec_():
             self.allsets = dialog.return_data()
         
-        try:
-            #self.allsets = cfio.read_sets_from_csv(filename, col=2)
-            self.parent.log.write("Loaded: " + 
-                os.path.split(str(filename))[1])
-            self.dataListModel.clear()
-            for set in self.allsets:
-                item = QStandardItem(set.title)
-                item.setCheckState(Qt.Checked)
-                item.setCheckable(True)
-                self.dataListModel.appendRow(item)
-                self.parent.log.write('\n'+set.title)
-                self.parent.log.write(str(set))
+
+        #self.allsets = cfio.read_sets_from_csv(filename, col=2)
+        self.parent.log.write("Loaded: " + 
+            os.path.split(str(filename))[1])
+        self.dataListModel.clear()
+        for set in self.allsets:
+            item = QStandardItem(set.title)
+            item.setCheckState(Qt.Checked)
+            item.setCheckable(True)
+            self.dataListModel.appendRow(item)
+            self.parent.log.write('\n'+set.title)
+            self.parent.log.write(str(set))
+
+
+        self.parent.data = self.allsets
+        self.parent.fname = filename
+        self.parent.report = Report(filename)
+        self.parent.report.title('Original data:', 1)
+        self.parent.report.paragraph('Number of datasets loaded: ' + str(len(self.allsets)))
+        for set in self.allsets:
+            self.parent.report.dataset(set.title, str(set))
+
+
             
             
-            self.parent.data = self.allsets
-            self.parent.fname = filename
             
-        except ValueError:
-            self.parent.log.write('fitting.py: WARNING: Oops!' + 
-                'File did not load properly...')
+
 
 
 class EquationBlock(QWidget):
@@ -129,10 +138,28 @@ class EquationBlock(QWidget):
         self.parent.pooledfit = fsession
         self.parent.plotblk.on_show(plotPooled=True)
         
+        self.parent.report.title('Pooled data fit finished', 1)
+        self.parent.report.paragraph(self.parent.pooledfit.string_estimates())
+        self.parent.report.paragraph(self.parent.pooledfit.string_liklimits())
+        plot_filename = os.path.join(self.parent.report.path, 
+            self.parent.report.filename + '_fitted_normalised_pooled.png')
+        plots.plot_hill_fit_result_single(self.parent.fname, 
+            self.parent.pooledfit.data, self.parent.pooledfit.eq, 
+            plotdata=False, plotaverage=True,
+            save_fig=True, save_name=plot_filename)
+        self.parent.report.image(plot_filename)
+        
     def on_normalise(self):
         for session in self.parent.fits:
             session.eq.normalise(session.data)
         self.parent.plotblk.on_show(plotNorm=True)
+        
+        self.parent.report.title('Data normalised to the fitted maxima', 1)
+        plot_filename = os.path.join(self.parent.report.path, 
+            self.parent.report.filename + '_all_fitted_normalised_curves.png')
+        plots.plot_hill_fit_result_multiple(self.parent.fname, self.parent.fits, 
+            norm=True, save_fig=True, save_name=plot_filename)
+        self.parent.report.image(plot_filename)
         
     def on_fit(self):
         progressDlg = QProgressDialog('Fitting data set {0:d}'.format(1),
@@ -142,12 +169,26 @@ class EquationBlock(QWidget):
         for fs in self.parent.fits:
             fs.fit()
             fs.calculate_errors()
+            self.parent.log.write('\n*************************************************')
+            self.parent.log.write('\t' + fs.data.title + ' fit finished')
+            self.parent.log.write(fs.string_estimates())
+            self.parent.log.write(fs.string_liklimits())
+            self.parent.report.title('{0} fit finished'.format(fs.data.title), 1)
+            self.parent.report.paragraph(fs.string_estimates())
+            self.parent.report.paragraph(fs.string_liklimits())
+            
             progressDlg.setValue(i)
             i += 1
             progressDlg.setLabelText('Fitting data set {0:d}'.format(i))
             if progressDlg.wasCanceled():
                 break
+
         self.parent.plotblk.on_show(plotFit=True)
+        plot_filename = os.path.join(self.parent.report.path, 
+            self.parent.report.filename + '_all_fittedcurves.png')
+        plots.plot_hill_fit_result_multiple(self.parent.fname, self.parent.fits, 
+            save_fig=True, save_name=plot_filename)
+        self.parent.report.image(plot_filename)
         
     def on_guess(self):
         self.parent.plotblk.on_show(plotGuesses=True)
@@ -174,12 +215,12 @@ class EquationBlock(QWidget):
         self.parent.eqname = eqname
         self.parent.eqtype = eqtype
         self.parent.eqfit = eqfit(eqname)
-        
         self.parent.fits = []
-        dialog = dialogs.EquationDlg(self.parent.data, eqtype, eqname, self.parent.log)
+        dialog = dialogs.EquationDlg(self.parent.data, eqtype, eqname, 
+            self.parent.log)
         if dialog.exec_():
             self.parent.fits = dialog.return_equation()
-            
+        
         
 class TextBlock(QWidget):
     def __init__(self, parent=None):
@@ -200,6 +241,9 @@ class TextBlock(QWidget):
         saveButton = QPushButton("Save Printout")
         self.connect(saveButton, SIGNAL("clicked()"), self.on_save)
         buttonHBox.addWidget(saveButton)
+        saveHTMLButton = QPushButton("Save HTML")
+        self.connect(saveHTMLButton, SIGNAL("clicked()"), self.on_save_html)
+        buttonHBox.addWidget(saveHTMLButton)
         
         layout = QVBoxLayout(self)
         layout.addWidget(self.textBox)
@@ -218,6 +262,9 @@ class TextBlock(QWidget):
 
         self.textBox.append('Session saved to printout file:')
         self.textBox.append(printOutFilename)
+        
+    def on_save_html(self):
+        self.parent.report.outputhtml()
         
     def on_about(self):
         dialog = mqt.AboutDlg(self)

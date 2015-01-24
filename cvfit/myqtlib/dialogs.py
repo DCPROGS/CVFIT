@@ -138,6 +138,7 @@ class EquationDlg(QDialog):
     def return_equation(self):
         fsessions = []
         for i in range(len(self.data)):
+            self.log.write('**********************************************')
             fsessions.append(SingleFitSession(self.data[i], self.equations[i], self.log))
         return fsessions
 

@@ -40,6 +40,7 @@ class CVFITgui(QMainWindow):
         self.eqname = None
         self.eqtype = None
         self.fname = ''
+        self.report = None
         
         upperHBox = QHBoxLayout()
         self.datablk = blocks.DataBlock(self)
