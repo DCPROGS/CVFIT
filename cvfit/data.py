@@ -1,3 +1,4 @@
+import xlrd
 import numpy as np
 from scipy import stats
 
@@ -133,3 +134,78 @@ class XYDataSet(object):
         for i in range(len(self.X)):
             str += "{0:.6g}\t{1:.6g}\t{2:.6g}\t{3:.6g}\n".format(self.X[i], self.Y[i], self.S[i], self.W[i])
         return str
+    
+    
+def read_sets_from_Excel(fname, set_col, line_skip, sheet, 
+    namesin=False, weight=1):
+    """
+    Read Excel file sheet to load data.
+    """
+    
+    wb = xlrd.open_workbook(fname)
+    s = wb.sheet_by_index(sheet)
+    setlist = []
+    for i in range(s.ncols / set_col):
+        X, Y, S = [], [], []
+        if set_col == 2:
+            for cell1, cell2 in zip(s.col_slice(i*set_col, start_rowx=line_skip), s.col_slice(i*set_col+1, start_rowx=line_skip)):
+                if cell1.ctype not in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK):
+                    X.append(cell1.value), Y.append(cell2.value), S.append(0)
+        if set_col == 3:
+            for cell1, cell2, cell3 in zip(s.col_slice(i*set_col, start_rowx=line_skip),
+                s.col_slice(i*set_col+1, start_rowx=line_skip),
+                s.col_slice(i*set_col+2, start_rowx=line_skip)):
+                if cell1.ctype not in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK):
+                    X.append(cell1.value), Y.append(cell2.value), S.append(cell3.value)
+        set = XYDataSet()
+        set.from_columns(np.array(X), np.array(Y), np.array(S))
+        set.title = 'Set ' + str(i+1)
+        set.weightmode = weight
+        setlist.append(set)
+    return setlist
+
+
+def read_sets_from_csv(filename, type, col=2, header=0, namesin=False, weight=1):
+    """
+    Read data from a txt or csv file in which X and Y (and SD) are in columns.
+    """
+    if type == 'csv':
+        delimit = ','
+    elif type == 'txt':
+        delimit = '\t'
+    if namesin:
+        f = open(filename, 'r')
+        nameline = f.readline().strip("\n")
+        names = nameline.split(delimit)
+        f.close()
+
+    rawresult = np.genfromtxt(filename, delimiter=delimit,skip_header=header)
+    setnum = rawresult.shape[1] / col
+    setlist = []
+    for i in range(setnum):
+        real = np.isfinite(rawresult[:, i * col])
+        set = XYDataSet()
+        if col == 2:
+            set.from_columns(rawresult[real, i * col],
+               rawresult[real, i * col + 1],
+               rawresult[real, i * col] * 0)
+        elif col == 3:
+            set.from_columns(rawresult[real, i * col],
+               rawresult[real, i * col + 1],
+               rawresult[real, i * col + 2],)
+        set.title = 'Set ' + str(i+1)
+        set.weightmode = weight
+        setlist.append(set)
+    return setlist
+
+
+def ask_for_file():
+    print 'Please type in the loaction of the csv file'
+    filename = raw_input('filename:').strip()
+    while (os.path.exists(filename) is False) or (filename[-4:] != '.csv'):
+        if os.path.exists(filename) is False:
+            print filename, 'not found. Please type in again.'
+        elif filename[-4:] != '.csv':
+            print filename, 'is not a CSV file. Please type in again.'
+        filename = raw_input('filename:').strip()
+    return filename

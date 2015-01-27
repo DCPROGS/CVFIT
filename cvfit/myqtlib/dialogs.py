@@ -3,20 +3,22 @@ __date__ ="$23-Feb-2010 10:29:31$"
 
 import sys
 import csv
+import xlrd
 from PySide.QtGui import *
 from PySide.QtCore import *
 
-from cvfit import cfio
+from cvfit import data
 from cvfit.fitting import SingleFitSession
 
 class LoadDataDlg(QDialog):
-    def __init__(self, filename, parent=None):
+    def __init__(self, filename, sheet=None, parent=None):
         super(LoadDataDlg, self).__init__(parent)
         self.setWindowTitle('Check data format...')
         self.resize(600, 300)
         layout = QVBoxLayout(self)
         
         self.filename = filename
+        self.sheet = sheet
         self.type = filename.split('.')[-1]
         self.col = 2
         self.row = 0
@@ -24,11 +26,24 @@ class LoadDataDlg(QDialog):
         
         textBox = QTextBrowser()
         layout.addWidget(textBox)
-        f = open(filename, 'rU')
-        txtdata = list(csv.reader(f, dialect=csv.excel_tab))
-        f.close()
-        for row in txtdata:
-            textBox.append(''.join(row))
+        
+        if self.type == 'xls' or self.type == 'xlsx':
+            wb = xlrd.open_workbook(filename)
+            s = wb.sheet_by_index(sheet)
+            txtdata = ''
+            for curr_row in range(s.nrows):
+                 row = s.row(curr_row)
+                 rowstr = ''
+                 for cell in row:
+                     rowstr += (str(cell.value) + '\t')
+                 txtdata += (rowstr + '\n')
+            textBox.append(txtdata)
+        else:
+            f = open(filename, 'rU')
+            txtdata = list(csv.reader(f, dialect=csv.excel_tab))
+            f.close()
+            for row in txtdata:
+                textBox.append(''.join(row))
         
         layout1 = QHBoxLayout()
         layout1.addWidget(QLabel('How many header lines to skip?'))
@@ -76,8 +91,56 @@ class LoadDataDlg(QDialog):
         self.row = self.rowSB.value()
         
     def return_data(self):
-        return cfio.read_sets_from_csv(self.filename, self.type, col=self.col,
-            header=self.row, namesin=False, weight=self.weight)
+        if self.type == 'xls' or self.type == 'xlsx':
+            return data.read_sets_from_Excel(self.filename, self.col, self.row, 
+                self.sheet)
+        else:
+            return data.read_sets_from_csv(self.filename, self.type, col=self.col,
+                header=self.row, namesin=False, weight=self.weight)
+            
+class ExcelSheetDlg(QDialog):
+    """
+    Dialog to choose Excel sheet to load.
+    """
+    def __init__(self, sheetlist, parent=None):
+        super(ExcelSheetDlg, self).__init__(parent)
+
+        self.sheet = ''
+        self.List = QListWidget()
+        self.List.addItems(sheetlist)
+    
+        self.connect(self.List,
+            SIGNAL("itemSelectionChanged()"),
+            self.sheetSelected)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|
+            QDialogButtonBox.Cancel)
+        self.connect(buttonBox, SIGNAL("accepted()"),
+            self, SLOT("accept()"))
+        self.connect(buttonBox, SIGNAL("rejected()"),
+            self, SLOT("reject()"))
+
+        layout1 = QHBoxLayout()
+        layout1.addWidget(self.List)
+        layout2 = QVBoxLayout()
+        layout2.addLayout(layout1)
+        layout2.addWidget(buttonBox)
+
+        self.setLayout(layout2)
+        self.resize(200, 300)
+        self.setWindowTitle("Choose Excel sheet to load...")
+
+    def sheetSelected(self):
+        """
+        Get selected sheet name.
+        """
+        self.sheet = self.List.currentRow()
+
+    def returnSheet(self):
+        """
+        Return selected sheet name.
+        """
+        return self.sheet
         
 
 class EquationDlg(QDialog):

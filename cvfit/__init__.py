@@ -12,8 +12,11 @@ References
 """
 
 import errors
-import cfio
 import data
+import fitting
+import hill
+import report
+import plots
 
 #import Example
 

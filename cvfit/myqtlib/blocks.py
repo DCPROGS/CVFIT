@@ -1,10 +1,10 @@
 import os
+import xlrd
 import numpy as np
 
 from PySide.QtGui import *
 from PySide.QtCore import *
 
-from cvfit import cfio
 from cvfit import data
 from cvfit import plots
 from cvfit.fitting import SingleFitSession
@@ -45,14 +45,22 @@ class DataBlock(QWidget):
     def on_load(self):
         filename, path = QFileDialog.getOpenFileName(self.parent,
                 "Open a data file...", ".",
-                "CSV files (*.csv);;TXT files (*.txt);;All files (*.*)")
+                "Excel files (*.xls *.xlsx);;CSV files (*.csv);" +
+                ";TXT files (*.txt);;All files (*.*)")
         self.parent.log.write('\nLoading file: ' + filename)
+        type = filename.split('.')[-1]
         
+        xlssheet = None
+        if type == 'xls' or type == 'xlsx':
+            book = xlrd.open_workbook(filename)
+            sheets = book.sheet_names()
+            dialog = dialogs.ExcelSheetDlg(sheets, self)
+            if dialog.exec_():
+                xlssheet = dialog.returnSheet()
 
-        dialog = dialogs.LoadDataDlg(filename)
+        dialog = dialogs.LoadDataDlg(filename, sheet=xlssheet)
         if dialog.exec_():
             self.allsets = dialog.return_data()
-        
 
         #self.allsets = cfio.read_sets_from_csv(filename, col=2)
         self.parent.log.write("Loaded: " + 
@@ -66,7 +74,6 @@ class DataBlock(QWidget):
             self.parent.log.write('\n'+set.title)
             self.parent.log.write(str(set))
 
-
         self.parent.data = self.allsets
         self.parent.fname = filename
         self.parent.report = Report(filename)
@@ -74,12 +81,6 @@ class DataBlock(QWidget):
         self.parent.report.paragraph('Number of datasets loaded: ' + str(len(self.allsets)))
         for set in self.allsets:
             self.parent.report.dataset(set.title, str(set))
-
-
-            
-            
-            
-
 
 
 class EquationBlock(QWidget):
@@ -334,9 +335,9 @@ class PlotBlock(QWidget):
             
         if plotGuesses:
             for session in self.parent.fits:
-                logplotX = np.log10(set.X)
+                logplotX = np.log10(session.data.X)
                 plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                    np.ceil(np.amax(logplotX)), 100)
+                    np.ceil(np.amax(logplotX) + 1), 100)
                 plotYg = session.eq.equation(plotX, session.eq.pars)
                 self.parent.canvas.axes.semilogx(plotX, plotYg, 'y-')
                 
@@ -344,7 +345,7 @@ class PlotBlock(QWidget):
             for session in self.parent.fits:
                 logplotX = np.log10(session.data.X)
                 plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                    np.ceil(np.amax(logplotX)), 100)
+                    np.ceil(np.amax(logplotX) + 1), 100)
                 plotYg = session.eq.equation(plotX, session.eq.pars)
                 self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
                 

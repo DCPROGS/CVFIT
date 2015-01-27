@@ -96,8 +96,9 @@ def set_cwd(dirname, filename):
     else:
         filename = filename.split('/')[-1].split('.')[0]
         
-    if not os.path.isdir(filename):
-        os.mkdir(filename)
-    os.chdir(filename)
+    timesuf = ("_%4d%02d%02d_%02d%02d%02d" %time.localtime()[0:6])
+    if not os.path.isdir(filename+timesuf):
+        os.mkdir(filename+timesuf)
+    os.chdir(filename+timesuf)
 
     return os.getcwd(), filename

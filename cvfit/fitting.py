@@ -5,7 +5,7 @@ from scipy import optimize
 import numpy as np
 
 import cvfit
-from cvfit import cfio
+from cvfit import data
 from cvfit import errors
 from cvfit.errors import residuals
 from cvfit.errors import SSD
@@ -115,13 +115,29 @@ def load_data(example=False):
         filename = (os.path.dirname(os.path.dirname(cvfit.__file__)) +
             "/Example/Example.csv")
     else:
-        filename = cfio.ask_for_file()
+        filename = data.ask_for_file()
     try:
         #allsets = cfio.read_sets_from_csv(filename, col=2)
-        allsets = cfio.read_sets_from_csv(filename, 'csv', col=2, header=0, namesin=False, weight=1)
+        allsets = data.read_sets_from_csv(filename, 'csv', col=2, header=0, namesin=False, weight=1)
     except ValueError:
         print('fitting.py: WARNING: Oops! File did not load properly...')
     return allsets, filename
+
+def check_input(text, accept, default):
+    '''
+    Check if the input is in acceptable range or not
+    If not, ask to key in another value
+    '''
+
+    inputnumber = raw_input(text)
+    if inputnumber:
+        while inputnumber not in accept:
+            print text
+            inputnumber = raw_input(text)
+    else:
+        inputnumber = default
+
+    return int(inputnumber)
 
 def set_weights(sets):
     """ 
@@ -161,7 +177,7 @@ def set_weights(sets):
             ' one repeat. Weights cannot by specified from s(Y).')
     print '5: Arbitrary weights entered by hand now (NOT IMPLEMENTED YET).'
         
-    weightmode = cfio.check_input('Mode number [1]: ', weightingmodes, 1)
+    weightmode = check_input('Mode number [1]: ', weightingmodes, 1)
     for each in sets:
         each.weightmode = weightmode
     return sets
@@ -189,7 +205,7 @@ def choose_equation():
     print '1. Hill equation'
     print '2. Langmuir equation'
     eq = 'Hill'
-    ieq = cfio.check_input('Choose equation to fit [1] : ', ['1', '2'], 1)
+    ieq = check_input('Choose equation to fit [1] : ', ['1', '2'], 1)
     if ieq == 2:
         eq = 'Langmuir'
     return eq
