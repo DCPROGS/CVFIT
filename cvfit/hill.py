@@ -90,7 +90,10 @@ class Hill(object):
         LinRegressY = np.log10(ratio / (1 - ratio))
         slope, intercept, r_value, p_value, std_err = stats.linregress(
             LinRegressX, LinRegressY)
-        self.guess[3] = slope
+        if math.isnan(slope):
+            self.guess[3] = 1.0
+        else:
+            self.guess[3] = slope
         if self.eqname == 'Langmuir':
             self.guess[3] = slope / math.fabs(slope)
 

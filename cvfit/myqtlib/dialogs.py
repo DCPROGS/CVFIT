@@ -245,4 +245,6 @@ class GuessDlg(QDialog):
                 self.fs[i].eq.fixed[j] = self.layouts[i].itemAt(j*3+2).widget().isChecked()
 
     def return_guesses(self):
+        for i in range(len(self.fs)):
+            self.fs[i].eq.pars = self.fs[i].eq.guess
         return self.fs
