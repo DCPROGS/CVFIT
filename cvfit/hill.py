@@ -47,16 +47,11 @@ class Hill(object):
         '''
         Nomalise Y to the fitted maximum.
         '''
-        if data.increase:
-            # Nomalise the coefficients by fixing the Y(0) and Ymax
-            self.normpars = self.pars.copy()
-            self.normpars[0], self.normpars[1] = 0, 1
-            data.normY = (data.Y - self.pars[0]) / self.pars[1]
-        else:
-            # Nomalise the coefficients by fixing the Y(0) and Ymax
-            self.normpars = self.pars.copy()
-            self.normpars[0], self.normpars[1] = 1, 0
-            data.normY = 1 - (data.Y - self.pars[1]) / self.pars[0]
+        # Nomalise the coefficients by fixing the Y(0) and Ymax
+        self.normpars = self.pars.copy()
+        self.normpars[0], self.normpars[1] = 0, 1
+        #data.normY = (data.Y - self.pars[0]) / self.pars[1]
+        data.normY = data.Y / self.pars[1]
         self.normalised = True
     
     def propose_guesses(self, data):
@@ -79,7 +74,10 @@ class Hill(object):
                 self.guess[1] = np.mean(data.Y[data.X == data.X[-1]]) - self.guess[0]
         else: # Response decreases with concentration
             # Determine Y(0)
-            self.guess[0] = np.mean(data.Y[data.X == data.X[-1]])
+            if self.fixed[0]:
+                self.guess[0] = 0
+            else:
+                self.guess[0] = np.mean(data.Y[data.X == data.X[-1]])
             # Determine Ymin
             self.guess[1] = np.mean(data.Y[data.X == data.X[0]]) - self.guess[0]
         # Determine Kr
@@ -91,7 +89,7 @@ class Hill(object):
         slope, intercept, r_value, p_value, std_err = stats.linregress(
             LinRegressX, LinRegressY)
         if math.isnan(slope):
-            self.guess[3] = 1.0
+            self.guess[3] = 1.0 if data.increase else -1.0
         else:
             self.guess[3] = slope
         if self.eqname == 'Langmuir':

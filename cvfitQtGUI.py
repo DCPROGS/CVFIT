@@ -1,15 +1,19 @@
 #! /usr/bin/python
 
 """
-Load set(s) of data from a csv, text or binary data file.
+Load set(s) of data from an Excel, csv or text file.
 From a checkable list select set(s) of data to fit.
 Plot the data.
 Choose a function to fit the data points.
-Fit the function to the data using...
+Fit the function to the data using ...
+Calculate approximate SD and likelihood intervals.
 Display the fit on the data plot.
+Generate HTML report.
 
-Supported data file formats:
-1. CSV file as saved from MS Excell (comma delimited).
+Supported data input file formats:
+1. Excel .xls and .xlsx files.
+2. CSV file.
+3. TXT file.
 
 """
 
