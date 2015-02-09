@@ -76,11 +76,6 @@ class DataBlock(QWidget):
 
         self.parent.data = self.allsets
         self.parent.fname = filename
-        self.parent.report = Report(filename)
-        self.parent.report.title('Original data:', 1)
-        self.parent.report.paragraph('Number of datasets loaded: ' + str(len(self.allsets)))
-        for set in self.allsets:
-            self.parent.report.dataset(set.title, str(set))
 
 
 class EquationBlock(QWidget):
@@ -163,6 +158,13 @@ class EquationBlock(QWidget):
         self.parent.report.image(plot_filename)
         
     def on_fit(self):
+
+        self.parent.report = Report(self.parent.fname)
+        self.parent.report.title('Original data:', 1)
+        self.parent.report.paragraph('Number of datasets loaded: ' + str(len(self.parent.fits)))
+        for fit in self.parent.fits:
+            self.parent.report.dataset(fit.data.title, str(fit.data))
+
         progressDlg = QProgressDialog('Fitting data set {0:d}'.format(1),
                                  "Cancel", 1, len(self.parent.fits))
         progressDlg.setWindowTitle('Fitting...')
