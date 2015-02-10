@@ -130,15 +130,22 @@ class EquationBlock(QWidget):
         fsession = SingleFitSession(pooldata, self.parent.eqfit, self.parent.log)
         fsession.fit()
         fsession.calculate_errors()
+
+        self.parent.log.write('\n***********************\n**************************')
+        self.parent.log.write('\tNormalised and pooled data fit finished')
+        self.parent.log.write(fsession.string_estimates())
+        self.parent.log.write(fsession.string_liklimits())
+
         fsession.data.average_pooled()
         self.parent.pooledfit = fsession
         self.parent.plotblk.on_show(plotPooled=True)
         
         self.parent.report.title('Pooled data fit finished', 1)
-        self.parent.report.paragraph(self.parent.pooledfit.string_estimates())
-        self.parent.report.paragraph(self.parent.pooledfit.string_liklimits())
-        plot_filename = os.path.join(self.parent.report.path, 
-            self.parent.report.filename + '_fitted_normalised_pooled.png')
+        self.parent.report.paragraph(fsession.string_estimates())
+        self.parent.report.paragraph(fsession.string_liklimits())
+        plot_filename = 'fitted_normalised_pooled.png'
+        #plot_filename = os.path.join(self.parent.report.path,
+        #    self.parent.report.filename + '_fitted_normalised_pooled.png')
         plots.plot_hill_fit_result_single(self.parent.fname, 
             self.parent.pooledfit.data, self.parent.pooledfit.eq, 
             plotdata=False, plotaverage=True,
@@ -151,8 +158,9 @@ class EquationBlock(QWidget):
         self.parent.plotblk.on_show(plotNorm=True)
         
         self.parent.report.title('Data normalised to the fitted maxima', 1)
-        plot_filename = os.path.join(self.parent.report.path, 
-            self.parent.report.filename + '_all_fitted_normalised_curves.png')
+        plot_filename = 'all_fitted_normalised_curves.png'
+        #plot_filename = os.path.join(self.parent.report.path,
+        #    self.parent.report.filename + '_all_fitted_normalised_curves.png')
         plots.plot_hill_fit_result_multiple(self.parent.fname, self.parent.fits, 
             norm=True, save_fig=True, save_name=plot_filename)
         self.parent.report.image(plot_filename)
@@ -187,9 +195,10 @@ class EquationBlock(QWidget):
                 break
 
         self.parent.plotblk.on_show(plotFit=True)
-        plot_filename = os.path.join(self.parent.report.path, 
-            self.parent.report.filename + '_all_fittedcurves.png')
-        plots.plot_hill_fit_result_multiple(self.parent.fname, self.parent.fits, 
+        plot_filename = 'all_fittedcurves.png'
+        #plot_filename = os.path.join(self.parent.report.path,
+        #    self.parent.report.filename + '_all_fittedcurves.png')
+        plots.plot_hill_fit_result_multiple(self.parent.fname, self.parent.fits,
             save_fig=True, save_name=plot_filename)
         self.parent.report.image(plot_filename)
         

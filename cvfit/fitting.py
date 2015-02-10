@@ -51,8 +51,8 @@ class SingleFitSession(object):
         self.Lcrit = self.Lmax - self.m
         self.Llimits = errors.lik_intervals(self.eq.theta, self.aproxSD, self.m, self.eq, self.data)
         
-        self.output.write(self.string_estimates())
-        self.output.write(self.string_liklimits())
+        #self.output.write(self.string_estimates())
+        #self.output.write(self.string_liklimits())
         
     def string_estimates(self):
         j = 0
