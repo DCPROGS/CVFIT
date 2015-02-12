@@ -20,6 +20,3 @@ A plot of averaged data points for each concentration with error bars indicating
 
     pip install markdown
 
-**Prettyplotlib** - A matplotlib-enhancer library.
-
-    pip install prettyplotlib
