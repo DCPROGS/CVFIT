@@ -40,7 +40,8 @@ class DataBlock(QWidget):
                 Qt.Checked)
             if checked:
                 self.parent.data.append(self.allsets[row])
-        self.parent.plotblk.on_show()
+        #self.parent.plotblk.on_show()
+        plots.plot(self.parent)
 
     def on_load(self):
         filename, path = QFileDialog.getOpenFileName(self.parent,
@@ -130,39 +131,28 @@ class EquationBlock(QWidget):
         fsession = SingleFitSession(pooldata, self.parent.eqfit, self.parent.log)
         fsession.fit()
         fsession.calculate_errors()
+        fsession.data.average_pooled()
+        self.parent.pooledfit = fsession
 
         self.parent.log.write('\n***********************\n**************************')
         self.parent.log.write('\tNormalised and pooled data fit finished')
         self.parent.log.write(fsession.string_estimates())
         self.parent.log.write(fsession.string_liklimits())
 
-        fsession.data.average_pooled()
-        self.parent.pooledfit = fsession
-        self.parent.plotblk.on_show(plotPooled=True)
-        
+        plot_filename = 'fitted_normalised_pooled.png'
+        plots.plot(self.parent, plotPooled=True, save_fig_name=plot_filename)
         self.parent.report.title('Pooled data fit finished', 1)
         self.parent.report.paragraph(fsession.string_estimates())
         self.parent.report.paragraph(fsession.string_liklimits())
-        plot_filename = 'fitted_normalised_pooled.png'
-        #plot_filename = os.path.join(self.parent.report.path,
-        #    self.parent.report.filename + '_fitted_normalised_pooled.png')
-        plots.plot_hill_fit_result_single(self.parent.fname, 
-            self.parent.pooledfit.data, self.parent.pooledfit.eq, 
-            plotdata=False, plotaverage=True,
-            save_fig=True, save_name=plot_filename)
         self.parent.report.image(plot_filename)
         
     def on_normalise(self):
         for session in self.parent.fits:
             session.eq.normalise(session.data)
-        self.parent.plotblk.on_show(plotNorm=True)
-        
-        self.parent.report.title('Data normalised to the fitted maxima', 1)
+
         plot_filename = 'all_fitted_normalised_curves.png'
-        #plot_filename = os.path.join(self.parent.report.path,
-        #    self.parent.report.filename + '_all_fitted_normalised_curves.png')
-        plots.plot_hill_fit_result_multiple(self.parent.fname, self.parent.fits, 
-            norm=True, save_fig=True, save_name=plot_filename)
+        plots.plot(self.parent, plotNorm=True, save_fig_name=plot_filename)
+        self.parent.report.title('Data normalised to the fitted maxima', 1)
         self.parent.report.image(plot_filename)
         
     def on_fit(self):
@@ -194,21 +184,17 @@ class EquationBlock(QWidget):
             if progressDlg.wasCanceled():
                 break
 
-        self.parent.plotblk.on_show(plotFit=True)
         plot_filename = 'all_fittedcurves.png'
-        #plot_filename = os.path.join(self.parent.report.path,
-        #    self.parent.report.filename + '_all_fittedcurves.png')
-        plots.plot_hill_fit_result_multiple(self.parent.fname, self.parent.fits,
-            save_fig=True, save_name=plot_filename)
+        plots.plot(self.parent, plotFit=True, save_fig_name=plot_filename)
         self.parent.report.image(plot_filename)
         
     def on_guess(self):
-        self.parent.plotblk.on_show(plotGuesses=True)
+        plots.plot(self.parent, plotGuesses=True)
         dialog = dialogs.GuessDlg(self.parent.fits)
         if dialog.exec_():
             fs = dialog.return_guesses()
         self.parent.fits = fs
-        self.parent.plotblk.on_show(plotGuesses=True)
+        plots.plot(self.parent, plotGuesses=True)
         
     def on_equation(self):
         row = self.eqList.currentRow()
@@ -306,66 +292,66 @@ class PlotBlock(QWidget):
         self.plot_legend = self.legendChB.isChecked()
         self.on_show()
         
-    def on_show(self, plotGuesses=False, 
-        plotFit=False, plotNorm=False, plotPooled=False):
-        self.parent.canvas.axes.clear()
-        self.parent.canvas.axes.grid(True)
-        
-            
-        if plotNorm:
-            for session in self.parent.fits:
-                self.parent.canvas.axes.semilogx(session.data.X, 
-                    session.data.normY, 'o', label=session.data.title)
-                logplotX = np.log10(session.data.X)
-                plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                    np.ceil(np.amax(logplotX)), 100)
-                plotYg = session.eq.equation(plotX, session.eq.normpars)
-                self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
-                
-        elif plotPooled:
-#            self.parent.canvas.axes.plot(self.parent.pooledfit.data.avX,
-#                self.parent.pooledfit.data.avY, 'ro', label='average')
-            self.parent.canvas.axes.errorbar(self.parent.pooledfit.data.avX, 
-                self.parent.pooledfit.data.avY, 
-                yerr=self.parent.pooledfit.data.avS, fmt='o', ecolor='b', label='average')
-            logplotX = np.log10(self.parent.pooledfit.data.avX)
-            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                np.ceil(np.amax(logplotX)), 100)
-            plotYg = self.parent.pooledfit.eq.equation(plotX,
-                self.parent.pooledfit.eq.pars)
-            self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
-            
-        else:
-            for set in self.parent.data:
-                if set.S.any() == 0:
-                    self.parent.canvas.axes.semilogx(set.X, set.Y, 'o', label=set.title)
-                else: 
-                    self.parent.canvas.axes.errorbar(set.X, set.Y, yerr=set.S,
-                        fmt='o', label=set.title)
-                    self.parent.canvas.axes.set_xscale('log')
-            
-        if plotGuesses:
-            for session in self.parent.fits:
-                logplotX = np.log10(session.data.X)
-                plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                    np.ceil(np.amax(logplotX) + 1), 100)
-                plotYg = session.eq.equation(plotX, session.eq.pars)
-                self.parent.canvas.axes.semilogx(plotX, plotYg, 'y-')
-                
-        if plotFit:
-            for session in self.parent.fits:
-                logplotX = np.log10(session.data.X)
-                plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                    np.ceil(np.amax(logplotX) + 1), 100)
-                plotYg = session.eq.equation(plotX, session.eq.pars)
-                self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
-                
-
-
-        if self.legendChB.isChecked():
-            self.parent.canvas.axes.legend(loc=2)
-            
-        self.parent.canvas.draw()
+#    def on_show(self, plotGuesses=False, 
+#        plotFit=False, plotNorm=False, plotPooled=False):
+#        self.parent.canvas.axes.clear()
+#        self.parent.canvas.axes.grid(True)
+#        
+#            
+#        if plotNorm:
+#            for session in self.parent.fits:
+#                self.parent.canvas.axes.semilogx(session.data.X, 
+#                    session.data.normY, 'o', label=session.data.title)
+#                logplotX = np.log10(session.data.X)
+#                plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+#                    np.ceil(np.amax(logplotX)), 100)
+#                plotYg = session.eq.equation(plotX, session.eq.normpars)
+#                self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
+#                
+#        elif plotPooled:
+##            self.parent.canvas.axes.plot(self.parent.pooledfit.data.avX,
+##                self.parent.pooledfit.data.avY, 'ro', label='average')
+#            self.parent.canvas.axes.errorbar(self.parent.pooledfit.data.avX, 
+#                self.parent.pooledfit.data.avY, 
+#                yerr=self.parent.pooledfit.data.avS, fmt='o', ecolor='b', label='average')
+#            logplotX = np.log10(self.parent.pooledfit.data.avX)
+#            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+#                np.ceil(np.amax(logplotX)), 100)
+#            plotYg = self.parent.pooledfit.eq.equation(plotX,
+#                self.parent.pooledfit.eq.pars)
+#            self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
+#            
+#        else:
+#            for set in self.parent.data:
+#                if set.S.any() == 0:
+#                    self.parent.canvas.axes.semilogx(set.X, set.Y, 'o', label=set.title)
+#                else: 
+#                    self.parent.canvas.axes.errorbar(set.X, set.Y, yerr=set.S,
+#                        fmt='o', label=set.title)
+#                    self.parent.canvas.axes.set_xscale('log')
+#            
+#        if plotGuesses:
+#            for session in self.parent.fits:
+#                logplotX = np.log10(session.data.X)
+#                plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+#                    np.ceil(np.amax(logplotX) + 1), 100)
+#                plotYg = session.eq.equation(plotX, session.eq.pars)
+#                self.parent.canvas.axes.semilogx(plotX, plotYg, 'y-')
+#                
+#        if plotFit:
+#            for session in self.parent.fits:
+#                logplotX = np.log10(session.data.X)
+#                plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+#                    np.ceil(np.amax(logplotX) + 1), 100)
+#                plotYg = session.eq.equation(plotX, session.eq.pars)
+#                self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
+#                
+#
+#
+#        if self.legendChB.isChecked():
+#            self.parent.canvas.axes.legend(loc=2)
+#            
+#        self.parent.canvas.draw()
         
         
         
