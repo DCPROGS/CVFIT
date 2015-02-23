@@ -140,7 +140,10 @@ class EquationBlock(QWidget):
         self.parent.log.write(fsession.string_liklimits())
 
         plot_filename = 'fitted_normalised_pooled.png'
-        plots.plot(self.parent, plotPooled=True, save_fig_name=plot_filename)
+        plots.plot(self.parent, axes=self.parent.canvas.axes, pooled=True,
+            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=plot_filename)
+        self.parent.canvas.draw()
+        self.parent.canvas.fig.savefig(plot_filename)
         self.parent.report.title('Pooled data fit finished', 1)
         self.parent.report.paragraph(fsession.string_estimates())
         self.parent.report.paragraph(fsession.string_liklimits())
@@ -151,7 +154,10 @@ class EquationBlock(QWidget):
             session.eq.normalise(session.data)
 
         plot_filename = 'all_fitted_normalised_curves.png'
-        plots.plot(self.parent, plotNorm=True, save_fig_name=plot_filename)
+        plots.plot(self.parent, axes=self.parent.canvas.axes, plotNorm=True,
+            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=plot_filename)
+        self.parent.canvas.draw()
+        self.parent.canvas.fig.savefig(plot_filename)
         self.parent.report.title('Data normalised to the fitted maxima', 1)
         self.parent.report.image(plot_filename)
         
@@ -185,16 +191,21 @@ class EquationBlock(QWidget):
                 break
 
         plot_filename = 'all_fittedcurves.png'
-        plots.plot(self.parent, plotFit=True, save_fig_name=plot_filename)
+        plots.plot(self.parent, axes=self.parent.canvas.axes, plotFit=True, 
+            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=plot_filename)
+        self.parent.canvas.draw()
+        self.parent.canvas.fig.savefig(plot_filename)
         self.parent.report.image(plot_filename)
         
     def on_guess(self):
-        plots.plot(self.parent, plotGuesses=True)
+        plots.plot(self.parent, axes=self.parent.canvas.axes, plotGuesses=True)
         dialog = dialogs.GuessDlg(self.parent.fits)
         if dialog.exec_():
             fs = dialog.return_guesses()
         self.parent.fits = fs
-        plots.plot(self.parent, plotGuesses=True)
+        plots.plot(self.parent, axes=self.parent.canvas.axes, plotGuesses=True,
+            legend=self.parent.plotblk.legendChB.isChecked())
+        self.parent.canvas.draw()
         
     def on_equation(self):
         row = self.eqList.currentRow()
