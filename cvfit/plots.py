@@ -3,6 +3,55 @@ import math
 import numpy as np
 from pylab import *
 
+def plot_pooled(fit, axes=None, plotFit=False, legend=False,
+    save_ASCII_name=None):
+
+    axes.clear()
+    axes.grid(True)
+
+    axes.errorbar(fit.data.avX,
+        fit.data.avY,
+        yerr=fit.data.avS, fmt='o', ecolor='b', label='average')
+    logplotX = np.log10(fit.data.avX)
+    plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+        np.ceil(np.amax(logplotX)), 100)
+    plotYg = fit.eq.equation(plotX,
+        fit.eq.pars)
+    axes.semilogx(plotX, plotYg, 'b-')
+
+    if save_ASCII_name:
+        name1 = save_ASCII_name[:-4] + '1.txt'
+        name1.replace('.', '1.')
+        fout = open(name1,'w')
+        for i in range(len(fit.data.avX)):
+            fout.write('{0:.6e}\t{1:.6e}\t{2:.6e}\n'.
+                format(fit.data.avX[i], fit.data.avY[i], fit.data.avS[i]))
+        fout.close()
+        print 'file 1 saved'
+
+    if plotFit:
+        logplotX = np.log10(fit.data.X)
+        plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+            np.ceil(np.amax(logplotX)), 100)
+        plotYg = fit.eq.equation(plotX, fit.eq.pars)
+        axes.semilogx(plotX, plotYg, 'b-')
+        if save_ASCII_name:
+            name2 = save_ASCII_name[:-4] + '2.txt'
+            fout = open(name2,'w')
+            for i in range(len(plotX)):
+                fout.write('{0:.6e}\t{1:.6e}\n'.
+                    format(plotX[i], plotYg[i]))
+            fout.close()
+            print 'file 2 saved'
+
+    if legend:
+        axes.legend(loc=2)
+
+
+
+
+
+
 def plot(parent, axes=None, plotGuesses=False, plotFit=False, plotNorm=False, 
     pooled=False, legend=False): #, save_fig_name=None):
 
