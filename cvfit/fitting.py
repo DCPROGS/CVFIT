@@ -11,6 +11,16 @@ from cvfit.errors import residuals
 from cvfit.errors import SSD
 from cvfit.errors import SSDlik
 
+class MultipleFitSession(object):
+    def __init__(self, output=sys.stdout):
+        self.output = output
+        self.list = []
+        
+    def add(self, fitset):
+        self.list.append(fitset)
+        
+        
+
 class SingleFitSession(object):
     def __init__(self, dataset, equation, output=sys.stdout):
         """

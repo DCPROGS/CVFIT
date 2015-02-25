@@ -41,7 +41,9 @@ class DataBlock(QWidget):
             if checked:
                 self.parent.data.append(self.allsets[row])
         #self.parent.plotblk.on_show()
-        plots.plot(self.parent)
+        plots.plot(self.parent, axes=self.parent.canvas.axes,
+            legend=self.parent.plotblk.legendChB.isChecked())
+        self.parent.canvas.draw()
 
     def on_load(self):
         filename, path = QFileDialog.getOpenFileName(self.parent,
@@ -128,7 +130,10 @@ class EquationBlock(QWidget):
         for session in self.parent.fits:
             pooldata.pool(session.data.X, session.data.normY, session.data.S)
         pooldata.weightmode = 1
-        fsession = SingleFitSession(pooldata, self.parent.eqfit, self.parent.log)
+        if self.parent.eqtype == 'Hill':
+            from cvfit.hill import Hill as EQ
+
+        fsession = SingleFitSession(pooldata, EQ(self.parent.eqname), self.parent.log)
         fsession.fit()
         fsession.calculate_errors()
         fsession.data.average_pooled()
@@ -140,8 +145,8 @@ class EquationBlock(QWidget):
         self.parent.log.write(fsession.string_liklimits())
 
         plot_filename = 'fitted_normalised_pooled.png'
-        plots.plot(self.parent, axes=self.parent.canvas.axes, pooled=True,
-            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=plot_filename)
+        plots.plot_pooled(self.parent.pooledfit, axes=self.parent.canvas.axes, plotFit=True, 
+            legend=self.parent.plotblk.legendChB.isChecked(), save_ASCII_name=plot_filename)
         self.parent.canvas.draw()
         self.parent.canvas.fig.savefig(plot_filename)
         self.parent.report.title('Pooled data fit finished', 1)
@@ -209,7 +214,8 @@ class EquationBlock(QWidget):
         
     def on_equation(self):
         row = self.eqList.currentRow()
-        if row == 0:
+        print('row=', row)
+        if row == 0 or row == -1:
             eqname = 'Hill'
             eqtype = 'Hill'
             from cvfit.hill import Hill as eqfit
@@ -218,13 +224,9 @@ class EquationBlock(QWidget):
             eqtype = 'Hill'
             from cvfit.hill import Hill as eqfit
         else:
-            self.parent.log.write("This eqation is not implemented yet.")
-            self.parent.log.write("Please, choose other equation.")
-            
-        self.parent.eqname = eqname
-        self.parent.eqtype = eqtype
-        self.parent.eqfit = eqfit(eqname)
-        self.parent.fits = []
+            self.parent.log.write("This eqation is not implemented yet.\n" +
+                "Please, choose other equation.")
+        self.parent.eqname, self.parent.eqtype = eqname, eqtype
         dialog = dialogs.EquationDlg(self.parent.data, eqtype, eqname, 
             self.parent.log)
         if dialog.exec_():
