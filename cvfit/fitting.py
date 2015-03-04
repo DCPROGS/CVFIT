@@ -29,6 +29,18 @@ class MultipleFitSession(object):
                 dataset.pool(session.data.X, session.data.Y, session.data.S)
         dataset.weightmode = 2
         self.pooled = SingleFitSession(dataset, self.list[0].eq, output)
+        
+    def string_average_estimates(self):
+        str = 'Average of estimates of {0:d} sets:'.format(len(self.list))
+       
+        for i in range(len(self.list[0].eq.names)):
+            pars = []
+            for j in range(len(self.list)):
+                pars.append(self.list[j].eq.pars[i])
+            str += ('\nParameter {0:d}: {1}  \t= {2:.6g} +/- {3:.6g}'.
+                format(i+1, self.list[0].eq.names[i], np.mean(pars), 
+                np.std(pars)/sqrt(len(pars))))
+        return str
 
 
 class SingleFitSession(object):

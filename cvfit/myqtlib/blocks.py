@@ -217,6 +217,11 @@ class EquationBlock(QWidget):
             progressDlg.setLabelText('Fitting data set {0:d}'.format(i))
             if progressDlg.wasCanceled():
                 break
+                
+        self.parent.log.write('\n\nAverage of all fits:')
+        self.parent.log.write(self.parent.fits.string_average_estimates())
+        self.parent.report.title('Average of all fits:', 1)
+        self.parent.report.paragraph(self.parent.fits.string_average_estimates())
 
         fname = 'all_fittedcurves.png'
         plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotFit=True, 
