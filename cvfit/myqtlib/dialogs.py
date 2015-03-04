@@ -8,7 +8,24 @@ from PySide.QtGui import *
 from PySide.QtCore import *
 
 from cvfit import data
-from cvfit.fitting import SingleFitSession
+from cvfit.fitting import SingleFitSession, MultipleFitSession
+
+class WarningDlg(QDialog):
+    def __init__(self, message, parent=None):
+        super(WarningDlg, self).__init__(parent)
+        self.setWindowTitle('Warning...')
+ 
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel(message))
+        
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
+        self.connect(buttonBox, SIGNAL("accepted()"),
+             self, SLOT("accept()"))
+        self.connect(buttonBox, SIGNAL("rejected()"),
+             self, SLOT("reject()"))
+        layout.addWidget(buttonBox)
+
 
 class LoadDataDlg(QDialog):
     def __init__(self, filename, sheet=None, parent=None):
@@ -199,11 +216,10 @@ class EquationDlg(QDialog):
             self.equations[i].normalised = self.layouts[i].itemAt(2).widget().isChecked()
         
     def return_equation(self):
-        fsessions = []
+        fits = MultipleFitSession(self.log)
         for i in range(len(self.data)):
-            self.log.write('**********************************************')
-            fsessions.append(SingleFitSession(self.data[i], self.equations[i], self.log))
-        return fsessions
+            fits.add(SingleFitSession(self.data[i], self.equations[i], self.log))
+        return fits
 
 class GuessDlg(QDialog):
     def __init__(self, fs, parent=None):
@@ -212,17 +228,17 @@ class GuessDlg(QDialog):
         layoutMain = QVBoxLayout()
 
         self.layouts = []
-        for i in range(len(self.fs)):
-            layoutMain.addWidget(QLabel(fs[i].data.title))
+        for i in range(len(self.fs.list)):
+            layoutMain.addWidget(QLabel(fs.list[i].data.title))
             layout = QHBoxLayout()
-            for j in range(len(self.fs[i].eq.names)):
-                layout.addWidget(QLabel(self.fs[i].eq.names[j]))
-                pared = QLineEdit(unicode(self.fs[i].eq.guess[j]))
+            for j in range(len(self.fs.list[i].eq.names)):
+                layout.addWidget(QLabel(self.fs.list[i].eq.names[j]))
+                pared = QLineEdit(unicode(self.fs.list[i].eq.guess[j]))
                 pared.setMaxLength(6)
                 self.connect(pared, SIGNAL("editingFinished()"), self.on_guess_changed)
                 layout.addWidget(pared)
                 parfix = QCheckBox("Fixed?")
-                parfix.setChecked(self.fs[i].eq.fixed[j])
+                parfix.setChecked(self.fs.list[i].eq.fixed[j])
                 self.connect(parfix, SIGNAL("stateChanged(int)"), self.on_guess_changed)
                 layout.addWidget(parfix)
             self.layouts.append(layout)
@@ -239,12 +255,12 @@ class GuessDlg(QDialog):
         self.setWindowTitle('Edit guesses...')
 
     def on_guess_changed(self):
-        for i in range(len(self.fs)):
-            for j in range(len(self.fs[i].eq.names)):
-                self.fs[i].eq.guess[j] = float(self.layouts[i].itemAt(j*3+1).widget().text())
-                self.fs[i].eq.fixed[j] = self.layouts[i].itemAt(j*3+2).widget().isChecked()
+        for i in range(len(self.fs.list)):
+            for j in range(len(self.fs.list[i].eq.names)):
+                self.fs.list[i].eq.guess[j] = float(self.layouts[i].itemAt(j*3+1).widget().text())
+                self.fs.list[i].eq.fixed[j] = self.layouts[i].itemAt(j*3+2).widget().isChecked()
 
     def return_guesses(self):
-        for i in range(len(self.fs)):
-            self.fs[i].eq.pars = self.fs[i].eq.guess
+        for i in range(len(self.fs.list)):
+            self.fs.list[i].eq.pars = self.fs.list[i].eq.guess
         return self.fs

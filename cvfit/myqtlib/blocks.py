@@ -41,7 +41,7 @@ class DataBlock(QWidget):
             if checked:
                 self.parent.data.append(self.allsets[row])
         #self.parent.plotblk.on_show()
-        plots.plot(self.parent, axes=self.parent.canvas.axes,
+        plots.plot(self.parent.data, axes=self.parent.canvas.axes,
             legend=self.parent.plotblk.legendChB.isChecked())
         self.parent.canvas.draw()
 
@@ -126,59 +126,82 @@ class EquationBlock(QWidget):
         layout.addStretch(1)
         
     def on_pool(self):
-        pooldata = data.XYDataSet()
-        for session in self.parent.fits:
-            pooldata.pool(session.data.X, session.data.normY, session.data.S)
-        pooldata.weightmode = 1
-        if self.parent.eqtype == 'Hill':
-            from cvfit.hill import Hill as EQ
-
-        fsession = SingleFitSession(pooldata, EQ(self.parent.eqname), self.parent.log)
-        fsession.fit()
-        fsession.calculate_errors()
-        fsession.data.average_pooled()
-        self.parent.pooledfit = fsession
+        
+        self.parent.fits.pool(norm=True, output=self.parent.log)
+        self.parent.fits.pooled.fit()
+        self.parent.fits.pooled.calculate_errors()
+        self.parent.fits.pooled.data.average_pooled()
 
         self.parent.log.write('\n***********************\n**************************')
         self.parent.log.write('\tNormalised and pooled data fit finished')
-        self.parent.log.write(fsession.string_estimates())
-        self.parent.log.write(fsession.string_liklimits())
+        self.parent.log.write(self.parent.fits.pooled.string_estimates())
+        self.parent.log.write(self.parent.fits.pooled.string_liklimits())
 
-        plot_filename = 'fitted_normalised_pooled.png'
-        plots.plot_pooled(self.parent.pooledfit, axes=self.parent.canvas.axes, plotFit=True, 
-            legend=self.parent.plotblk.legendChB.isChecked(), save_ASCII_name=plot_filename)
+        self.parent.canvas.axes.clear()
+        self.parent.canvas.axes.grid(True)
+        self.parent.canvas.axes.errorbar(self.parent.fits.pooled.data.avX,
+            self.parent.fits.pooled.data.avY,
+            yerr=self.parent.fits.pooled.data.avS,
+            fmt='o', ecolor='b', label='average')
+        logplotX = np.log10(self.parent.fits.pooled.data.avX)
+        plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+            np.ceil(np.amax(logplotX)), 100)
+        plotYg = self.parent.fits.pooled.eq.equation(plotX,
+            self.parent.fits.pooled.eq.pars)
+        self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
+               
+        if self.parent.plotblk.legendChB.isChecked():
+            self.parent.canvas.axes.legend(loc=2)
         self.parent.canvas.draw()
-        self.parent.canvas.fig.savefig(plot_filename)
+        
+        fname = 'fitted_normalised_pooled.png'
+        self.parent.canvas.fig.savefig(fname)
+#        plots.plot_pooled(self.parent.fits.pooled, axes=self.parent.canvas.axes, plotFit=True, 
+#            legend=self.parent.plotblk.legendChB.isChecked(), save_ASCII_name=fname)
         self.parent.report.title('Pooled data fit finished', 1)
-        self.parent.report.paragraph(fsession.string_estimates())
-        self.parent.report.paragraph(fsession.string_liklimits())
-        self.parent.report.image(plot_filename)
+        self.parent.report.paragraph(self.parent.fits.pooled.string_estimates())
+        self.parent.report.paragraph(self.parent.fits.pooled.string_liklimits())
+        self.parent.report.image(fname)
+        
+        fout = open(fname[:-4] + '1.txt', 'w')
+        for i in range(len(self.parent.fits.pooled.data.avX)):
+            fout.write('{0:.6e}\t{1:.6e}\t{2:.6e}\n'.
+                format(self.parent.fits.pooled.data.avX[i], 
+                self.parent.fits.pooled.data.avY[i],
+                self.parent.fits.pooled.data.avS[i]))
+        fout.close()
+        fout = open(fname[:-4] + '2.txt', 'w')
+        for i in range(len(plotX)):
+            fout.write('{0:.6e}\t{1:.6e}\n'.
+                format(plotX[i], plotYg[i]))
+        fout.close()
+
         
     def on_normalise(self):
-        for session in self.parent.fits:
+        for session in self.parent.fits.list:
             session.eq.normalise(session.data)
 
-        plot_filename = 'all_fitted_normalised_curves.png'
-        plots.plot(self.parent, axes=self.parent.canvas.axes, plotNorm=True,
-            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=plot_filename)
+        fname = 'all_fitted_normalised_curves.png'
+        plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotNorm=True,
+            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=fname)
         self.parent.canvas.draw()
-        self.parent.canvas.fig.savefig(plot_filename)
+        self.parent.canvas.fig.savefig(fname)
         self.parent.report.title('Data normalised to the fitted maxima', 1)
-        self.parent.report.image(plot_filename)
+        self.parent.report.image(fname)
         
     def on_fit(self):
 
         self.parent.report = Report(self.parent.fname)
         self.parent.report.title('Original data:', 1)
-        self.parent.report.paragraph('Number of datasets loaded: ' + str(len(self.parent.fits)))
-        for fit in self.parent.fits:
+        self.parent.report.paragraph('Number of datasets loaded: ' + str(len(self.parent.fits.list)))
+        for fit in self.parent.fits.list:
             self.parent.report.dataset(fit.data.title, str(fit.data))
 
         progressDlg = QProgressDialog('Fitting data set {0:d}'.format(1),
-                                 "Cancel", 1, len(self.parent.fits))
+                                 "Cancel", 1, len(self.parent.fits.list))
         progressDlg.setWindowTitle('Fitting...')
         i = 1
-        for fs in self.parent.fits:
+        for fs in self.parent.fits.list:
             fs.fit()
             fs.calculate_errors()
             self.parent.log.write('\n*************************************************')
@@ -195,22 +218,28 @@ class EquationBlock(QWidget):
             if progressDlg.wasCanceled():
                 break
 
-        plot_filename = 'all_fittedcurves.png'
-        plots.plot(self.parent, axes=self.parent.canvas.axes, plotFit=True, 
-            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=plot_filename)
+        fname = 'all_fittedcurves.png'
+        plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotFit=True, 
+            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=fname)
         self.parent.canvas.draw()
-        self.parent.canvas.fig.savefig(plot_filename)
-        self.parent.report.image(plot_filename)
+        self.parent.canvas.fig.savefig(fname)
+        self.parent.report.image(fname)
         
     def on_guess(self):
-        plots.plot(self.parent, axes=self.parent.canvas.axes, plotGuesses=True)
-        dialog = dialogs.GuessDlg(self.parent.fits)
-        if dialog.exec_():
-            fs = dialog.return_guesses()
-        self.parent.fits = fs
-        plots.plot(self.parent, axes=self.parent.canvas.axes, plotGuesses=True,
-            legend=self.parent.plotblk.legendChB.isChecked())
-        self.parent.canvas.draw()
+        
+        if self.parent.fits:
+            plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotGuesses=True,
+                legend=self.parent.plotblk.legendChB.isChecked())
+            dialog = dialogs.GuessDlg(self.parent.fits)
+            if dialog.exec_():
+                self.parent.fits = dialog.return_guesses()
+            plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotGuesses=True,
+                legend=self.parent.plotblk.legendChB.isChecked())
+            self.parent.canvas.draw()
+        else:
+            dialog = dialogs.WarningDlg('Please, load equation first!')
+            if dialog.exec_():
+                pass
         
     def on_equation(self):
         row = self.eqList.currentRow()
@@ -227,6 +256,7 @@ class EquationBlock(QWidget):
             self.parent.log.write("This eqation is not implemented yet.\n" +
                 "Please, choose other equation.")
         self.parent.eqname, self.parent.eqtype = eqname, eqtype
+        self.parent.log.write('**********************************************')
         dialog = dialogs.EquationDlg(self.parent.data, eqtype, eqname, 
             self.parent.log)
         if dialog.exec_():

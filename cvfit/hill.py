@@ -52,6 +52,7 @@ class Hill(object):
         self.normpars[0], self.normpars[1] = 0, 1
         #data.normY = (data.Y - self.pars[0]) / self.pars[1]
         data.normY = data.Y / self.pars[1]
+        data.normS = data.S / self.pars[1]
         self.normalised = True
     
     def propose_guesses(self, data):

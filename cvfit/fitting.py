@@ -15,11 +15,21 @@ class MultipleFitSession(object):
     def __init__(self, output=sys.stdout):
         self.output = output
         self.list = []
+        self.pooled = None
         
     def add(self, fitset):
         self.list.append(fitset)
         
-        
+    def pool(self, norm=False, output=sys.stdout):
+        dataset = data.XYDataSet()
+        for session in self.list:
+            if norm:
+                dataset.pool(session.data.X, session.data.normY, session.data.normS)
+            else:
+                dataset.pool(session.data.X, session.data.Y, session.data.S)
+        dataset.weightmode = 2
+        self.pooled = SingleFitSession(dataset, self.list[0].eq, output)
+
 
 class SingleFitSession(object):
     def __init__(self, dataset, equation, output=sys.stdout):
