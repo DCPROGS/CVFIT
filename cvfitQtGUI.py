@@ -22,8 +22,8 @@ __date__ ="$07-Feb-2010 16:23:20$"
 
 import sys
 try:
-    from PySide.QtGui import *
-    from PySide.QtCore import *
+    from PyQt4.QtGui import *
+    from PyQt4.QtCore import *
 except:
     raise ImportError("pyqt module is missing")
 

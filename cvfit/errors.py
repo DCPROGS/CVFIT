@@ -198,7 +198,7 @@ def tvalue(ndf):
     elif ndf > 120:
         tval = 1.96
     else:
-        print ' ERROR IN TVALUE '
+        print(' ERROR IN TVALUE ')
     return tval           
 
 def lik_intervals(theta, SD, m, func, set):

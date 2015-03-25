@@ -2,8 +2,8 @@ import os
 import xlrd
 import numpy as np
 
-from PySide.QtGui import *
-from PySide.QtCore import *
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 
 from cvfit import data
 from cvfit import plots
@@ -46,10 +46,9 @@ class DataBlock(QWidget):
         self.parent.canvas.draw()
 
     def on_load(self):
-        filename, path = QFileDialog.getOpenFileName(self.parent,
+        filename = QFileDialog.getOpenFileName(self.parent,
                 "Open a data file...", ".",
-                "Excel files (*.xls *.xlsx);;CSV files (*.csv);" +
-                ";TXT files (*.txt);;All files (*.*)")
+                "Excel files (*.xls *.xlsx);;CSV files (*.csv);;TXT files (*.txt);;All files (*.*)")
         self.parent.log.write('\nLoading file: ' + filename)
         type = filename.split('.')[-1]
         
@@ -248,7 +247,6 @@ class EquationBlock(QWidget):
         
     def on_equation(self):
         row = self.eqList.currentRow()
-        print('row=', row)
         if row == 0 or row == -1:
             eqname = 'Hill'
             eqtype = 'Hill'

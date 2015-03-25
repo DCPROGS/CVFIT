@@ -42,18 +42,19 @@ class Report(object):
         self.f.write('\n' + '![Alt text](' + imagefile + ')' + '\n')
 
     def tabletitle(self, titlelist):
-        writetable = np.repeat(titlelist, 2).astype('string')
+        writetable = np.repeat(titlelist, 2).astype(str)
         writetable[::2] = ' | '
-        self.f.write('\n' + writetable.tostring() + ' | ' + '\n')
+        #self.f.write('\n' + writetable.tostring() + ' | \n')
+        self.f.write('\n' +  ' '.join(map(str, writetable)) + ' | \n')
         writetable[1::2] = '-' * 20
-        self.f.write(writetable.tostring() + ' | ' + '\n')
+        self.f.write(' '.join(map(str, writetable)) + ' | \n')
 
     def table(self, tabletext):
         # Create table form numpy array
         for line in tabletext:
-            writetable = np.repeat(line, 2).astype('string')
+            writetable = np.repeat(line, 2).astype(str)
             writetable[::2] = ' | '
-            self.f.write(writetable.tostring() + ' | | ' + '\n')
+            self.f.write(' '.join(map(str, writetable)) + ' | | \n')
            
     def dataset(self, name, set):
         self.paragraph(name)

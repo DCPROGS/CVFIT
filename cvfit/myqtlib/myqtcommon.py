@@ -3,8 +3,8 @@ import socket
 import datetime
 
 try:
-    from PySide.QtGui import *
-    from PySide.QtCore import *
+    from PyQt4.QtGui import *
+    from PyQt4.QtCore import *
 except:
     raise ImportError("pyqt module is missing")
 
@@ -51,7 +51,7 @@ class MatPlotWin(FigureCanvas):
         self.axes = self.fig.add_subplot(111)
         self.axes.autoscale_view(True,True,True)
         self.fontsize = fsize
-        for loc, spine in self.axes.spines.iteritems():
+        for loc, spine in self.axes.spines.items(): #iteritems():
             if loc in ['right','top']:
                 spine.set_color('none') # don't draw spine
         self.axes.xaxis.set_ticks_position('bottom')

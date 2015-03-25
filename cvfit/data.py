@@ -145,7 +145,7 @@ def read_sets_from_Excel(fname, set_col, line_skip, sheet,
     wb = xlrd.open_workbook(fname)
     s = wb.sheet_by_index(sheet)
     setlist = []
-    for i in range(s.ncols / set_col):
+    for i in range(int(s.ncols / set_col)):
         X, Y, S = [], [], []
         if set_col == 2:
             for cell1, cell2 in zip(s.col_slice(i*set_col, start_rowx=line_skip), s.col_slice(i*set_col+1, start_rowx=line_skip)):
@@ -200,12 +200,12 @@ def read_sets_from_csv(filename, type, col=2, header=0, namesin=False, weight=1)
 
 
 def ask_for_file():
-    print 'Please type in the loaction of the csv file'
+    print('Please type in the loaction of the csv file')
     filename = raw_input('filename:').strip()
     while (os.path.exists(filename) is False) or (filename[-4:] != '.csv'):
         if os.path.exists(filename) is False:
-            print filename, 'not found. Please type in again.'
+            print(filename, 'not found. Please type in again.')
         elif filename[-4:] != '.csv':
-            print filename, 'is not a CSV file. Please type in again.'
+            print (filename, 'is not a CSV file. Please type in again.')
         filename = raw_input('filename:').strip()
     return filename

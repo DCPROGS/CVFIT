@@ -4,8 +4,8 @@ __date__ ="$23-Feb-2010 10:29:31$"
 import sys
 import csv
 import xlrd
-from PySide.QtGui import *
-from PySide.QtCore import *
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 
 from cvfit import data
 from cvfit.fitting import SingleFitSession, MultipleFitSession
@@ -233,7 +233,7 @@ class GuessDlg(QDialog):
             layout = QHBoxLayout()
             for j in range(len(self.fs.list[i].eq.names)):
                 layout.addWidget(QLabel(self.fs.list[i].eq.names[j]))
-                pared = QLineEdit(unicode(self.fs.list[i].eq.guess[j]))
+                pared = QLineEdit(str(self.fs.list[i].eq.guess[j]))
                 pared.setMaxLength(6)
                 self.connect(pared, SIGNAL("editingFinished()"), self.on_guess_changed)
                 layout.addWidget(pared)

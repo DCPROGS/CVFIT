@@ -164,7 +164,7 @@ def check_input(text, accept, default):
     inputnumber = raw_input(text)
     if inputnumber:
         while inputnumber not in accept:
-            print text
+            print(text)
             inputnumber = raw_input(text)
     else:
         inputnumber = default
@@ -193,9 +193,9 @@ def set_weights(sets):
         weightingmodes.append('4')
 
     print('\nPlease select the weighting method now:')
-    print '1: Weights constant; errors from residuals (Default).'
+    print('1: Weights constant; errors from residuals (Default).')
     if mode2:
-        print '2: Weights from specified s(Y); errors from weights.'
+        print('2: Weights from specified s(Y); errors from weights.')
         print('3: Weights from specified n, the number of values in the' +
             ' average; errors from weights.')
     else:
@@ -207,7 +207,7 @@ def set_weights(sets):
     else:
         print ('4: s(Y) cannot be calculated because some or all X have only' +
             ' one repeat. Weights cannot by specified from s(Y).')
-    print '5: Arbitrary weights entered by hand now (NOT IMPLEMENTED YET).'
+    print('5: Arbitrary weights entered by hand now (NOT IMPLEMENTED YET).')
         
     weightmode = check_input('Mode number [1]: ', weightingmodes, 1)
     for each in sets:
@@ -217,15 +217,15 @@ def set_weights(sets):
 def general_settings():
 
     general_settings = {}
-    print '\nPlease, choose between:'
-    print '0- fit all sets with the same equation;'
-    print '1- fit each set separately [Default].'
+    print ('\nPlease, choose between:')
+    print ('0- fit all sets with the same equation;')
+    print ('1- fit each set separately [Default].')
     #fit_separate = cfio.check_input('0 or 1: ', ['0', '1'], 1)
     general_settings['fit_separate'] = 1
     
-    print 'Do you want to select fit settings separately?'
-    print '0- use same settings for all datasets (Default);'
-    print '1- set settings for each dataset separately.'
+    print ('Do you want to select fit settings separately?')
+    print ('0- use same settings for all datasets (Default);')
+    print ('1- set settings for each dataset separately.')
     #fit_setting = cfio.check_input('0 or 1: ', ['0', '1'], 0)
     general_settings['same_settings'] = 0
 
@@ -233,9 +233,9 @@ def general_settings():
     
 
 def choose_equation():
-    print '\nAvailable equations:'
-    print '1. Hill equation'
-    print '2. Langmuir equation'
+    print ('\nAvailable equations:')
+    print ('1. Hill equation')
+    print ('2. Langmuir equation')
     eq = 'Hill'
     ieq = check_input('Choose equation to fit [1] : ', ['1', '2'], 1)
     if ieq == 2:
@@ -250,7 +250,7 @@ def simplex(func, theta, *args):
 
     verbose = 0
 
-    print '\n USING FAST VERSION OF SIMPLEX'
+    print ('\n USING FAST VERSION OF SIMPLEX')
 
     # these might come as parameters
     errfac = 1.e-6   #1.e-4
@@ -272,7 +272,7 @@ def simplex(func, theta, *args):
 
     for j in range(k):
         step[j] = stpfac * theta[j]
-	crtstp[j] = errfac * theta[j]
+        crtstp[j] = errfac * theta[j]
 
     neval = 0	 # counts function evaluations
     nrestart = 5    # max number of restarts
@@ -281,7 +281,7 @@ def simplex(func, theta, *args):
     while irestart < nrestart:    # 2001	continue	!return here for restart
 
         irestart += 1
-        print 'RESTART#', irestart
+        print ('RESTART#', irestart)
 
         simp[0] = theta
         fval[0] = func(theta, args)
@@ -291,7 +291,7 @@ def simplex(func, theta, *args):
         neval += 1
 
         # compute offset of the vertices of the starting simplex
-	fac = (sqrt(float(n)) - 1.) / (float(k) * sqrt(2.))
+        fac = (sqrt(float(n)) - 1.) / (float(k) * sqrt(2.))
 
         #specify all other vertices of the starting simplex
         for i in range(1, n):
@@ -303,9 +303,9 @@ def simplex(func, theta, *args):
             fval[i] = func(simp[i], args)
         neval += k
 
-        if verbose: print '\n simplex at the beginning of restart='
-        if verbose: print simp
-        if verbose: print ' fval at the begining', fval
+        if verbose: print ('\n simplex at the beginning of restart=')
+        if verbose: print (simp)
+        if verbose: print (' fval at the begining', fval)
 
         fval, simp = sortShell(fval, simp)
         if fval[0] < absmin:
@@ -317,7 +317,7 @@ def simplex(func, theta, *args):
         niter	= 0
         while L == 0:
             niter += 1
-            print 'iter#', niter, 'f=', fval[0], 'theta', simp[0]
+            print ('iter#', niter, 'f=', fval[0], 'theta', simp[0])
 
             # ----- compute centroid of all vertices except the worst
             centre = np.zeros((k))
@@ -334,7 +334,7 @@ def simplex(func, theta, *args):
                 absmin = fnew
                 thmin = pnew
             neval += 1
-            if verbose: print 'reflection: e#', neval, 'f=',fnew, 'pnew=', pnew
+            if verbose: print ('reflection: e#', neval, 'f=',fnew, 'pnew=', pnew)
 
             if fnew < fval[0]:
                 # ----- new vertex is better than previous best so extend it
@@ -345,7 +345,7 @@ def simplex(func, theta, *args):
                     absmin = fnew1
                     thmin = pnew1
                 neval += 1
-                if verbose: print 'extention: e#', neval, 'f1=',fnew1, 'pnew1=', pnew1
+                if verbose: print ('extention: e#', neval, 'f1=',fnew1, 'pnew1=', pnew1)
 
                 if fnew1 < fnew:     # ----- still better
                     simp[-1] = pnew1
@@ -374,7 +374,7 @@ def simplex(func, theta, *args):
                         absmin = fnew1
                         thmin = pnew1
                     neval += 1
-                    if verbose: print 'contraction: e#', neval, 'f=',fnew1, 'pnew1=', pnew1
+                    if verbose: print ('contraction: e#', neval, 'f=',fnew1, 'pnew1=', pnew1)
 
                     # ----- is contracted vertex better than the worst vertex
                     if fnew1 <= fval[-1]:
@@ -388,7 +388,7 @@ def simplex(func, theta, *args):
                                     simp[i,j] = simp[0,j] + confac * (simp[i,j] - simp[0,j])
                             fval[i] = func(simp[i], args)
                             neval += 1
-                            if verbose: print 'reduction: e#', neval, 'f=',fval[i], 'theta=', theta
+                            if verbose: print ('reduction: e#', neval, 'f=',fval[i], 'theta=', theta)
 
             fval, simp = sortShell(fval, simp)
             if fval[0] < absmin:
@@ -455,36 +455,36 @@ def simplex(func, theta, *args):
                 if exvals[i] < exvals[il]: il = i
             if il == 0:
                 if irestart == nrestart or fsav == fval[0]:
-                    print '\n Returned with best vertex'
+                    print ('\n Returned with best vertex')
                     return simp[0], fval[0]
                 else:
                     L = 0
                     theta = simp[0]
-                    print '\n Restarted at best vertex'
+                    print ('\n Restarted at best vertex')
             elif il == 1:
                 if irestart == nrestart or fsav == fvalav:
-                    print '\n Returned with averaged vertices'
+                    print ('\n Returned with averaged vertices')
                     return pnew, fvalav
                 else:
                     L = 0
                     theta = pnew
-                    print '\n Restarted at averaged vertices'
+                    print ('\n Restarted at averaged vertices')
             elif il == 2:
                 if irestart == nrestart or fsav == absmin:
-                    print '\n Returned with absolut minimum'
+                    print ('\n Returned with absolut minimum')
                     return thmin, absmin
                 else:
                     L = 0
                     theta = thmin
-                    print '\n Restarted at absolut minimum'
+                    print ('\n Restarted at absolut minimum')
             else:
                 if irestart == nrestart or fsav == fval1:
-                    print '\n Returned with result of local search minimum'
+                    print ('\n Returned with result of local search minimum')
                     return pnew1, fval1
                 else:
                     L = 0
                     theta = pnew1
-                    print '\n Restarted at result of local search minimum'
+                    print ('\n Restarted at result of local search minimum')
 
 
 
