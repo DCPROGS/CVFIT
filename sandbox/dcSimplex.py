@@ -36,7 +36,7 @@ def simplex(theta, func, data, verbose=0):
     Python implementation of DC's SIMPLEXV.FOR subroutine.
     """
 
-    print '\n USING FAST VERSION OF SIMPLEX'
+    print ('\n USING FAST VERSION OF SIMPLEX')
 
     # these might come as parameters
     errfac = 1.e-6   #1.e-4
@@ -58,7 +58,7 @@ def simplex(theta, func, data, verbose=0):
 
     for j in range(k):
         step[j] = stpfac * theta[j]
-	crtstp[j] = errfac * theta[j]
+        crtstp[j] = errfac * theta[j]
 
     neval = 0	 # counts function evaluations
     nrestart = 100    # max number of restarts
@@ -67,7 +67,7 @@ def simplex(theta, func, data, verbose=0):
     while irestart < nrestart:    # 2001	continue	!return here for restart
 
         irestart += 1
-        print 'RESTART#', irestart
+        print ('RESTART#', irestart)
 
         simp[0] = theta
         fval[0] = func(theta, data)
@@ -77,7 +77,7 @@ def simplex(theta, func, data, verbose=0):
         neval += 1
 
         # compute offset of the vertices of the starting simplex
-	fac = (sqrt(float(n)) - 1.) / (float(k) * sqrt(2.))
+        fac = (sqrt(float(n)) - 1.) / (float(k) * sqrt(2.))
         
         #specify all other vertices of the starting simplex
         for i in range(1, n):
@@ -89,9 +89,9 @@ def simplex(theta, func, data, verbose=0):
             fval[i] = func(simp[i], data)
         neval += k
 
-        if verbose: print '\n simplex at the beginning of restart='
-        if verbose: print simp
-        if verbose: print ' fval at the begining', fval
+        if verbose: print ('\n simplex at the beginning of restart=')
+        if verbose: print (simp)
+        if verbose: print (' fval at the begining', fval)
 
         fval, simp = sortShell(fval, simp)
         if fval[0] < absmin:
@@ -103,7 +103,7 @@ def simplex(theta, func, data, verbose=0):
         niter	= 0
         while L == 0:
             niter += 1
-            print 'iter#', niter, 'f=', fval[0], 'theta', simp[0]
+            print ('iter#', niter, 'f=', fval[0], 'theta', simp[0])
             
             # ----- compute centroid of all vertices except the worst
             centre = np.zeros((k))
@@ -120,7 +120,7 @@ def simplex(theta, func, data, verbose=0):
                 absmin = fnew
                 thmin = pnew
             neval += 1
-            if verbose: print 'reflection: e#', neval, 'f=',fnew, 'pnew=', pnew
+            if verbose: print ('reflection: e#', neval, 'f=',fnew, 'pnew=', pnew)
 
             if fnew < fval[0]:
                 # ----- new vertex is better than previous best so extend it
@@ -131,7 +131,7 @@ def simplex(theta, func, data, verbose=0):
                     absmin = fnew1
                     thmin = pnew1
                 neval += 1
-                if verbose: print 'extention: e#', neval, 'f1=',fnew1, 'pnew1=', pnew1
+                if verbose: print ('extention: e#', neval, 'f1=',fnew1, 'pnew1=', pnew1)
 
                 if fnew1 < fnew:     # ----- still better
                     simp[-1] = pnew1
@@ -160,7 +160,7 @@ def simplex(theta, func, data, verbose=0):
                         absmin = fnew1
                         thmin = pnew1
                     neval += 1
-                    if verbose: print 'contraction: e#', neval, 'f=',fnew1, 'pnew1=', pnew1
+                    if verbose: print ('contraction: e#', neval, 'f=',fnew1, 'pnew1=', pnew1)
 
                     # ----- is contracted vertex better than the worst vertex
                     if fnew1 <= fval[-1]:
@@ -174,7 +174,7 @@ def simplex(theta, func, data, verbose=0):
                                     simp[i,j] = simp[0,j] + confac * (simp[i,j] - simp[0,j])
                             fval[i] = func(simp[i], data)
                             neval += 1
-                            if verbose: print 'reduction: e#', neval, 'f=',fval[i], 'theta=', theta
+                            if verbose: print ('reduction: e#', neval, 'f=',fval[i], 'theta=', theta)
 
             fval, simp = sortShell(fval, simp)
             if fval[0] < absmin:
@@ -241,36 +241,36 @@ def simplex(theta, func, data, verbose=0):
                 if exvals[i] < exvals[il]: il = i
             if il == 0:
                 if irestart == nrestart or fsav == fval[0]:
-                    print '\n Returned with best vertex'
+                    print ('\n Returned with best vertex')
                     return simp[0], fval[0]
                 else:
                     L = 0
                     theta = simp[0]
-                    print '\n Restarted at best vertex'
+                    print ('\n Restarted at best vertex')
             elif il == 1:
                 if irestart == nrestart or fsav == fvalav:
-                    print '\n Returned with averaged vertices'
+                    print ('\n Returned with averaged vertices')
                     return pnew, fvalav
                 else:
                     L = 0
                     theta = pnew
-                    print '\n Restarted at averaged vertices'
+                    print ('\n Restarted at averaged vertices')
             elif il == 2:
                 if irestart == nrestart or fsav == absmin:
-                    print '\n Returned with absolut minimum'
+                    print ('\n Returned with absolut minimum')
                     return thmin, absmin
                 else:
                     L = 0
                     theta = thmin
-                    print '\n Restarted at absolut minimum'
+                    print ('\n Restarted at absolut minimum')
             else:
                 if irestart == nrestart or fsav == fval1:
-                    print '\n Returned with result of local search minimum'
+                    print ('\n Returned with result of local search minimum')
                     return pnew1, fval1
                 else:
                     L = 0
                     theta = pnew1
-                    print '\n Restarted at result of local search minimum'
+                    print ('\n Restarted at result of local search minimum')
 
 def hill(theta, xv):
 
@@ -364,8 +364,8 @@ if __name__ == "__main__":
     theta = np.array([0.5, 1000, 5])
 
     values, smin = simplex(theta, ssdcv, data4)
-    print ' END OF FITTING'
-    print '\n SDmin =', smin
-    print ' Final values:', values
+    print (' END OF FITTING')
+    print ('\n SDmin =', smin)
+    print (' Final values:', values)
 
     plot(values, data4)

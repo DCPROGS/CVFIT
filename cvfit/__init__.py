@@ -11,12 +11,12 @@ References
 ----------
 """
 
-import errors
-import data
-import fitting
-import hill
-import report
-import plots
+import cvfit.errors
+import cvfit.data
+import cvfit.fitting
+import cvfit.hill
+import cvfit.report
+import cvfit.plots
 
 #import Example
 

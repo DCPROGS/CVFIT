@@ -510,3 +510,48 @@ def sortShell(vals, simp):
              simp[j] = tsimp
          gap //= 2
     return vals, simp
+
+def read_ini(file, verbose=0):
+    """Chose and read ini file."""
+    inidict = {}
+    inidict['inifile'] = file
+    if verbose: print ("will read mech file:", file)
+
+    ints = array('i')
+    f = open(file, 'r')
+
+    inidict['ndev'] = f.read(2)
+    if verbose: print ("ndev=", inidict['ndev'])
+    ints.fromfile(f,1)
+    inidict['ifile1'] = ints.pop()
+    if verbose: print ("ifile1=", inidict['ifile1'])
+    ints.fromfile(f,1)
+    inidict['ifitmode'] = ints.pop()
+    if verbose: print ("ifitmode=", inidict['ifitmode'])
+    ints.fromfile(f,1)
+    inidict['ilog'] = ints.pop()
+    if verbose: print ("ilog=", inidict['ilog'])
+    ints.fromfile(f,1)
+    inidict['idiskq'] = ints.pop()
+    if verbose: print ("idiskq=", inidict['idiskq'])
+    inidict['titlef'] = f.read(60)
+    if verbose: print ("titlef=", inidict['titlef'])
+    inidict['infil'] = f.read(33)
+    if verbose: print ("infil=", inidict['infil'])
+    #niobs- Maximimum number of observations per set
+    ints.fromfile(f,1)
+    inidict['niobs'] = ints.pop()
+    if verbose: print ("niobs=", inidict['niobs'])
+    #njset- Maximimum array size for sets (# of sets +5)?
+    ints.fromfile(f,1)
+    inidict['njset'] = ints.pop()
+    if verbose: print ("njset=", inidict['njset'])
+    inidict['ascfil'] = f.read(33)
+    if verbose: print ("ascfil=", inidict['ascfil'])
+    ints.fromfile(f,1)
+    inidict['nsfit'] = ints.pop()
+    if verbose: print ("nsfit=", inidict['nsfit'])
+
+    f.close()
+    return inidict
+
