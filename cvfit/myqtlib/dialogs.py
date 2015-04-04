@@ -165,7 +165,7 @@ class EquationDlg(QDialog):
         super(EquationDlg, self).__init__(parent)
         self.setWindowTitle(eqname + ' equation settings...')
         if eqtype == 'Hill':
-            from cvfit.hill import Hill as EQ
+            from cvfit.equations import Hill as EQ
         self.equations = []
         self.data = data
         self.log = output

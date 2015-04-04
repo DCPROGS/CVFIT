@@ -18,14 +18,14 @@ if __name__ == "__main__":
     
     sets = fitting.set_weights(sets)
     for i in range(len(sets)):
-        print '\nSet #{0:d}:'.format(i+1)
-        print sets[i]
+        print ('\nSet #{0:d}:'.format(i+1))
+        print (sets[i])
     #settings = fitting.general_settings()
     
     eqname = fitting.choose_equation()
-    print eqname
+    print (eqname)
     if eqname == 'Hill' or eqname == 'Langmuir':
-        from cvfit.hill import Hill as eqfit
+        from cvfit.equations import Hill as eqfit
          
     fitsessions = []
     for set in sets:

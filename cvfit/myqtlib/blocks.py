@@ -250,11 +250,11 @@ class EquationBlock(QWidget):
         if row == 0 or row == -1:
             eqname = 'Hill'
             eqtype = 'Hill'
-            from cvfit.hill import Hill as eqfit
+            from cvfit.equations import Hill as eqfit
         elif row == 1:
             eqname = 'Langmuir'
             eqtype = 'Hill'
-            from cvfit.hill import Hill as eqfit
+            from cvfit.equations import Hill as eqfit
         else:
             self.parent.log.write("This eqation is not implemented yet.\n" +
                 "Please, choose other equation.")

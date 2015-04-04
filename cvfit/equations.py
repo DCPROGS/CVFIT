@@ -3,6 +3,52 @@ import math
 from scipy import stats
 import numpy as np
 
+class Linear(object):
+    def __init__(self, eqname, pars=None):
+        """
+        pars = [a, b]
+        """
+        self.eqname = eqname
+        self.ncomp = 1
+        self.pars = pars
+        self.fixed = [False, False]
+        self.names = ['a', 'b']
+        self.data = None
+        self.guess = None
+        self._theta = None
+        self.normalised = False
+        
+    def equation(self, x, coeff):
+        '''
+        The linear equation.
+        '''
+        return coeff[0] + coeff[1] * x
+            
+    def to_fit(self, theta, x):
+        #for each in np.nonzero(self.fixed)[0]:   
+        #    theta = np.insert(theta, each, self.pars[each])
+        self._set_theta(theta)
+        return self.equation(x, self.pars)
+    
+    def _set_theta(self, theta):
+        for each in np.nonzero(self.fixed)[0]:   
+            theta = np.insert(theta, each, self.pars[each])
+        self.pars = theta
+    def _get_theta(self):
+        return self.pars[np.nonzero(np.invert(self.fixed))[0]]
+    theta = property(_get_theta, _set_theta)
+    
+    def propose_guesses(self, data):
+        '''
+        Calculate the initial guesses for fitting with Linear equation.
+        '''
+        
+        #if self.Component == 1:
+        slope, intercept, r, p, stderr = stats.linregress(data.X, data.Y)
+        self.guess = np.array([intercept, slope])
+        self.pars = self.guess.copy()
+
+
 class Hill(object):
     def __init__(self, eqname, pars=None):
         """
