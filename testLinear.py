@@ -9,12 +9,11 @@ from cvfit.fitting import SingleFitSession
 if __name__ == "__main__":
 
     filename = "./Example/Example.xlsx"
-    allsets = data.read_sets_from_Excel(filename, 2, 0, 2)
+    set0 = data.read_sets_from_Excel(filename, 2, 0, 2)[0]
     print("Loaded: " + os.path.split(str(filename))[1])
-    print (str(allsets[0]))
-    eqname = 'Linear'
-    equation = eqfit(eqname)
-    fsession = SingleFitSession(allsets[0], equation)
+    print (str(set0))
+    equation = eqfit('Linear')
+    fsession = SingleFitSession(set0, equation)
     fsession.fit()
     fsession.calculate_errors()
     print(fsession.string_estimates())

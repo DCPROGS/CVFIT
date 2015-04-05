@@ -1,32 +1,25 @@
-
 import math
 from scipy import stats
 import numpy as np
 
-class Linear(object):
-    def __init__(self, eqname, pars=None):
-        """
-        pars = [a, b]
-        """
-        self.eqname = eqname
+class Equation(object):
+    def __init__(self):
+        """        """
+        self.eqname = None
         self.ncomp = 1
-        self.pars = pars
-        self.fixed = [False, False]
-        self.names = ['a', 'b']
+        self.pars = None
+        self.fixed = []
+        self.names = []
         self.data = None
         self.guess = None
         self._theta = None
         self.normalised = False
         
     def equation(self, x, coeff):
-        '''
-        The linear equation.
-        '''
-        return coeff[0] + coeff[1] * x
+        ''' '''
+        pass
             
     def to_fit(self, theta, x):
-        #for each in np.nonzero(self.fixed)[0]:   
-        #    theta = np.insert(theta, each, self.pars[each])
         self._set_theta(theta)
         return self.equation(x, self.pars)
     
@@ -38,18 +31,35 @@ class Linear(object):
         return self.pars[np.nonzero(np.invert(self.fixed))[0]]
     theta = property(_get_theta, _set_theta)
     
+
+class Linear(Equation):
+    def __init__(self, eqname, pars=None):
+        """
+        pars = [a, b]
+        """
+        self.eqname = eqname
+        self.ncomp = 1
+        self.pars = pars
+        self.fixed = [False, False]
+        self.names = ['a', 'b']
+        
+    def equation(self, x, coeff):
+        '''
+        The linear equation.
+        '''
+        return coeff[0] + coeff[1] * x 
+   
     def propose_guesses(self, data):
         '''
         Calculate the initial guesses for fitting with Linear equation.
         '''
-        
         #if self.Component == 1:
         slope, intercept, r, p, stderr = stats.linregress(data.X, data.Y)
         self.guess = np.array([intercept, slope])
         self.pars = self.guess.copy()
 
 
-class Hill(object):
+class Hill(Equation):
     def __init__(self, eqname, pars=None):
         """
         pars = [Ymin, Ymax, EC50, nH]
@@ -63,9 +73,6 @@ class Hill(object):
         if eqname == 'Langmuir':
             self.fixed = [True, False, False, True]
             self.names = ['Ymin', 'Ymax', 'EC50']
-        self.data = None
-        self.guess = None
-        self._theta = None
         self.normalised = False
         
     def equation(self, conc, coeff):
@@ -75,20 +82,6 @@ class Hill(object):
         return (coeff[0] + (coeff[1] * (conc / coeff[2]) ** coeff[3]) / 
             (1 + (conc / coeff[2]) ** coeff[3]))
             
-    def to_fit(self, theta, conc):
-        #for each in np.nonzero(self.fixed)[0]:   
-        #    theta = np.insert(theta, each, self.pars[each])
-        self._set_theta(theta)
-        return self.equation(conc, self.pars)
-    
-    def _set_theta(self, theta):
-        for each in np.nonzero(self.fixed)[0]:   
-            theta = np.insert(theta, each, self.pars[each])
-        self.pars = theta
-    def _get_theta(self):
-        return self.pars[np.nonzero(np.invert(self.fixed))[0]]
-    theta = property(_get_theta, _set_theta)
-    
     def normalise(self, data):
         '''
         Nomalise Y to the fitted maximum.
@@ -105,7 +98,6 @@ class Hill(object):
         '''
         Calculate the initial guesses for fitting with Hill equation.
         '''
-        
         #if self.Component == 1:
         self.guess = np.empty(4)
         if data.increase: # Response increases with concentration
@@ -141,7 +133,6 @@ class Hill(object):
             self.guess[3] = slope
         if self.eqname == 'Langmuir':
             self.guess[3] = slope / math.fabs(slope)
-
 #        elif self.Component == 2:
 #            print 'Two Components fitting is not completed.'
 #            sys.exit(0)
