@@ -145,12 +145,12 @@ def load_data(example=False):
 
     if example:
         filename = (os.path.dirname(os.path.dirname(cvfit.__file__)) +
-            "/Example/Example.csv")
+            "./Example/Example.xlsx")
     else:
         filename = data.ask_for_file()
     try:
-        #allsets = cfio.read_sets_from_csv(filename, col=2)
-        allsets = data.read_sets_from_csv(filename, 'csv', col=2, header=0, namesin=False, weight=1)
+        #allsets = data.read_sets_from_csv(filename, 'csv', col=2, header=0, namesin=False, weight=1)
+        allsets = data.read_sets_from_Excel(filename, 2, 0, 0, namesin=False, weight=1)
     except ValueError:
         print('fitting.py: WARNING: Oops! File did not load properly...')
     return allsets, filename
@@ -161,11 +161,11 @@ def check_input(text, accept, default):
     If not, ask to key in another value
     '''
 
-    inputnumber = raw_input(text)
+    inputnumber = input(text)
     if inputnumber:
         while inputnumber not in accept:
             print(text)
-            inputnumber = raw_input(text)
+            inputnumber = input(text)
     else:
         inputnumber = default
 
