@@ -68,7 +68,7 @@ class SingleFitSession(object):
         self.data = dataset
         self.eq = equation
         self.eq.propose_guesses(self.data)
-        self.output.write('Fitting session for ' + self.data.title + ' initialised!')
+        self.output.write('\n\tFitting session for ' + self.data.title + ' initialised!')
         
     def fit(self):
         # Least square fitting
@@ -265,9 +265,9 @@ def simplex(func, theta, *args):
     Python implementation of DC's SIMPLEXV.FOR subroutine.
     """
 
-    verbose = 0
+    verbose = False
 
-    print ('\n USING FAST VERSION OF SIMPLEX')
+    if verbose: print ('\n USING FAST VERSION OF SIMPLEX')
 
     # these might come as parameters
     errfac = 1.e-6   #1.e-4
@@ -298,7 +298,7 @@ def simplex(func, theta, *args):
     while irestart < nrestart:    # 2001	continue	!return here for restart
 
         irestart += 1
-        print ('RESTART#', irestart)
+        if verbose: print ('RESTART#', irestart)
 
         simp[0] = theta
         fval[0] = func(theta, args)
@@ -334,7 +334,7 @@ def simplex(func, theta, *args):
         niter	= 0
         while L == 0:
             niter += 1
-            print ('iter#', niter, 'f=', fval[0], 'theta', simp[0])
+            if verbose: print ('iter#', niter, 'f=', fval[0], 'theta', simp[0])
 
             # ----- compute centroid of all vertices except the worst
             centre = np.zeros((k))
