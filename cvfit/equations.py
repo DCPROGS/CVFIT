@@ -73,6 +73,7 @@ class Hill(Equation):
         if eqname == 'Langmuir':
             self.fixed = [True, False, False, True]
             self.names = ['Ymin', 'Ymax', 'EC50']
+        self.normpars = None
         self.normalised = False
         
     def equation(self, conc, coeff):
@@ -137,4 +138,10 @@ class Hill(Equation):
 #            print 'Two Components fitting is not completed.'
 #            sys.exit(0)
         self.pars = self.guess.copy()
+        
+    def calculate_plot(self, X, coeff):
+        plotX = 10 ** np.linspace(np.floor(np.amin(np.log10(X)) - 1),
+            np.ceil(np.amax(np.log10(X))), 100)
+        plotY = self.equation(plotX, coeff)
+        return plotX, plotY
 

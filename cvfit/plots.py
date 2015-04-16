@@ -2,51 +2,88 @@ import os
 import math
 import numpy as np
 from pylab import *
+from matplotlib.figure import Figure
 
-def plot(data, fits=None, axes=None, 
-    plotGuesses=False, plotFit=False, plotNorm=False, legend=False):
-
-    
-    axes.clear()
-    axes.grid(True)
-
-    if plotNorm:
-        for session in fits.list:
-            axes.semilogx(session.data.X, 
-                session.data.normY, 'o', label=session.data.title)
-            logplotX = np.log10(session.data.X)
-            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                np.ceil(np.amax(logplotX)), 100)
-            plotYg = session.eq.equation(plotX, session.eq.normpars)
-            axes.semilogx(plotX, plotYg, 'b-')
-
-    else:
-        for set in data:
-            if set.S.any() == 0:
-                axes.semilogx(set.X, set.Y, 'o', label=set.title)
-            else: 
-                axes.errorbar(set.X, set.Y, yerr=set.S,
-                    fmt='o', label=set.title)
-                axes.set_xscale('log')
-
-    if plotGuesses:
-        for session in fits.list:
-            logplotX = np.log10(session.data.X)
-            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                np.ceil(np.amax(logplotX)), 100)
-            plotYg = session.eq.equation(plotX, session.eq.pars)
-            axes.semilogx(plotX, plotYg, 'y-')
-
-    if plotFit:
-        for session in fits.list:
-            logplotX = np.log10(session.data.X)
-            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-                np.ceil(np.amax(logplotX)), 100)
-            plotYg = session.eq.equation(plotX, session.eq.pars)
-            axes.semilogx(plotX, plotYg, 'b-')
-
+def plot(datasets, fplotsets=None, fplotline='b-', 
+    fig=None, logX=False, logY=False, legend=True, norm=False, pooled=False):
+        
+    newfig = False
+    if not fig:
+        fig = Figure()
+        newfig = True
+    ax = fig.add_subplot(111)
+    ax.clear()
+        
+    for set in datasets:
+        if norm:
+            X, Y, S = set.X, set.normY, set.normS
+        elif pooled:
+            X, Y, S = set.avX, set.avY, set.avS
+        else:
+            X, Y, S = set.X, set.Y, set.S
+        if S.any() == 0:
+            ax.plot(X, Y, 'o', label=set.title)
+        else: 
+            ax.errorbar(X, Y, yerr=S,
+                fmt='o', label=set.title)
+                
+    if fplotsets:
+        for fplot in fplotsets:
+            ax.plot(fplot[0], fplot[1], fplotline)
+    if logX:           
+        ax.set_xscale('log')
+    if logY:           
+        ax.set_yscale('log')
     if legend:
-        axes.legend(loc=2)
+        ax.legend(loc=2)
+    if newfig:
+        return fig
+
+
+#def plot(data, fits=None, axes=None, 
+#    plotGuesses=False, plotFit=False, plotNorm=False, legend=False):
+#
+#    
+#    axes.clear()
+#    axes.grid(True)
+#
+#    if plotNorm:
+#        for session in fits.list:
+#            axes.semilogx(session.data.X, 
+#                session.data.normY, 'o', label=session.data.title)
+#            logplotX = np.log10(session.data.X)
+#            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+#                np.ceil(np.amax(logplotX)), 100)
+#            plotYg = session.eq.equation(plotX, session.eq.normpars)
+#            axes.semilogx(plotX, plotYg, 'b-')
+#
+#    else:
+#        for set in data:
+#            if set.S.any() == 0:
+#                axes.semilogx(set.X, set.Y, 'o', label=set.title)
+#            else: 
+#                axes.errorbar(set.X, set.Y, yerr=set.S,
+#                    fmt='o', label=set.title)
+#                axes.set_xscale('log')
+#
+#    if plotGuesses:
+#        for session in fits.list:
+#            logplotX = np.log10(session.data.X)
+#            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+#                np.ceil(np.amax(logplotX)), 100)
+#            plotYg = session.eq.equation(plotX, session.eq.pars)
+#            axes.semilogx(plotX, plotYg, 'y-')
+#
+#    if plotFit:
+#        for session in fits.list:
+#            logplotX = np.log10(session.data.X)
+#            plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
+#                np.ceil(np.amax(logplotX)), 100)
+#            plotYg = session.eq.equation(plotX, session.eq.pars)
+#            axes.semilogx(plotX, plotYg, 'b-')
+#
+#    if legend:
+#        axes.legend(loc=2)
 
 def plot_hill_fit_result_single(filename, set, equation, 
     plotdata=True, plotfit=True, plotguess=False, plotaverage=False,

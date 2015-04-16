@@ -61,7 +61,7 @@ class MatPlotWin(FigureCanvas):
         for label in self.axes.yaxis.get_ticklabels():
             label.set_fontsize(self.fontsize)
 #        self.mplTools = NavigationToolbar(self.canvas, self.parent)
-        FigureCanvas.__init__(self, self.fig)        
+        FigureCanvas.__init__(self, self.fig) 
         
 class MatPlotTools(NavigationToolbar):
     """

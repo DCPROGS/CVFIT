@@ -4,6 +4,8 @@ import numpy as np
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
 
 from cvfit import data
 from cvfit import plots
@@ -31,8 +33,7 @@ class DataBlock(QWidget):
         layout.addWidget(plotButton)
         layout.addStretch(1)
         
-    def on_plot(self):
-        
+    def update_data(self):
         self.parent.data = []
         for row in range(self.dataListModel.rowCount()):
             i = self.dataListModel.index(row, 0)
@@ -40,8 +41,15 @@ class DataBlock(QWidget):
                 Qt.Checked)
             if checked:
                 self.parent.data.append(self.allsets[row])
+        
+    def on_plot(self):
+        self.update_data()
         #self.parent.plotblk.on_show()
-        plots.plot(self.parent.data, axes=self.parent.canvas.axes,
+#        plots.plot(self.parent.data, axes=self.parent.canvas.axes,
+#            legend=self.parent.plotblk.legendChB.isChecked())
+        plots.plot(self.parent.data, fig=self.parent.figure, 
+            logX=self.parent.plotblk.logXChB.isChecked(),
+            logY=self.parent.plotblk.logYChB.isChecked(),
             legend=self.parent.plotblk.legendChB.isChecked())
         self.parent.canvas.draw()
 
@@ -135,28 +143,17 @@ class EquationBlock(QWidget):
         self.parent.log.write('\tNormalised and pooled data fit finished')
         self.parent.log.write(self.parent.fits.pooled.string_estimates())
         self.parent.log.write(self.parent.fits.pooled.string_liklimits())
-
-        self.parent.canvas.axes.clear()
-        self.parent.canvas.axes.grid(True)
-        self.parent.canvas.axes.errorbar(self.parent.fits.pooled.data.avX,
-            self.parent.fits.pooled.data.avY,
-            yerr=self.parent.fits.pooled.data.avS,
-            fmt='o', ecolor='b', label='average')
-        logplotX = np.log10(self.parent.fits.pooled.data.avX)
-        plotX = 10 ** np.linspace(np.floor(np.amin(logplotX) - 1),
-            np.ceil(np.amax(logplotX)), 100)
-        plotYg = self.parent.fits.pooled.eq.equation(plotX,
-            self.parent.fits.pooled.eq.pars)
-        self.parent.canvas.axes.semilogx(plotX, plotYg, 'b-')
-               
-        if self.parent.plotblk.legendChB.isChecked():
-            self.parent.canvas.axes.legend(loc=2)
-        self.parent.canvas.draw()
         
+        fplots = self.parent.fits.prepare_fplot('pooled')
+        plots.plot([self.parent.fits.pooled.data], 
+            fig=self.parent.figure, fplotsets=fplots, fplotline='b-',
+            logX=self.parent.plotblk.logXChB.isChecked(),
+            logY=self.parent.plotblk.logYChB.isChecked(),
+            legend=self.parent.plotblk.legendChB.isChecked(), pooled=True)
+        self.parent.canvas.draw()
         fname = 'fitted_normalised_pooled.png'
-        self.parent.canvas.fig.savefig(fname)
-#        plots.plot_pooled(self.parent.fits.pooled, axes=self.parent.canvas.axes, plotFit=True, 
-#            legend=self.parent.plotblk.legendChB.isChecked(), save_ASCII_name=fname)
+        self.parent.figure.savefig(fname)
+
         self.parent.report.title('Pooled data fit finished', 1)
         self.parent.report.paragraph(self.parent.fits.pooled.string_estimates())
         self.parent.report.paragraph(self.parent.fits.pooled.string_liklimits())
@@ -170,9 +167,9 @@ class EquationBlock(QWidget):
                 self.parent.fits.pooled.data.avS[i]))
         fout.close()
         fout = open(fname[:-4] + '2.txt', 'w')
-        for i in range(len(plotX)):
+        for i in range(len(fplots[0][0])):
             fout.write('{0:.6e}\t{1:.6e}\n'.
-                format(plotX[i], plotYg[i]))
+                format(fplots[0][0][i], fplots[0][1][i]))
         fout.close()
 
         
@@ -181,10 +178,14 @@ class EquationBlock(QWidget):
             session.eq.normalise(session.data)
 
         fname = 'all_fitted_normalised_curves.png'
-        plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotNorm=True,
-            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=fname)
+        fplots = self.parent.fits.prepare_fplot('norm')
+        plots.plot(self.parent.data, fig=self.parent.figure, 
+            fplotsets=fplots, fplotline='b-',
+            logX=self.parent.plotblk.logXChB.isChecked(),
+            logY=self.parent.plotblk.logYChB.isChecked(),
+            legend=self.parent.plotblk.legendChB.isChecked(), norm=True)
         self.parent.canvas.draw()
-        self.parent.canvas.fig.savefig(fname)
+        self.parent.figure.savefig(fname)
         self.parent.report.title('Data normalised to the fitted maxima', 1)
         self.parent.report.image(fname)
         
@@ -223,23 +224,36 @@ class EquationBlock(QWidget):
         self.parent.report.paragraph(self.parent.fits.string_average_estimates())
 
         fname = 'all_fittedcurves.png'
-        plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotFit=True, 
-            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=fname)
+        fplots = self.parent.fits.prepare_fplot('fit')
+        plots.plot(self.parent.data, fig=self.parent.figure, 
+            fplotsets=fplots, fplotline='b-',
+            logX=self.parent.plotblk.logXChB.isChecked(),
+            logY=self.parent.plotblk.logYChB.isChecked(),
+            legend=self.parent.plotblk.legendChB.isChecked())
         self.parent.canvas.draw()
-        self.parent.canvas.fig.savefig(fname)
+        
+#        plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotFit=True, 
+#            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=fname)
+#        self.parent.canvas.draw()
+        self.parent.figure.savefig(fname)
         self.parent.report.image(fname)
         
-    def on_guess(self):
+    def plot_guess(self):
+        fplots = self.parent.fits.prepare_fplot('guess')
+        plots.plot(self.parent.data, fig=self.parent.figure, 
+            fplotsets=fplots, fplotline='y-',
+            logX=self.parent.plotblk.logXChB.isChecked(),
+            logY=self.parent.plotblk.logYChB.isChecked(),
+            legend=self.parent.plotblk.legendChB.isChecked())
+        self.parent.canvas.draw()
         
+    def on_guess(self):
         if self.parent.fits:
-            plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotGuesses=True,
-                legend=self.parent.plotblk.legendChB.isChecked())
+            self.plot_guess()
             dialog = dialogs.GuessDlg(self.parent.fits)
             if dialog.exec_():
                 self.parent.fits = dialog.return_guesses()
-            plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotGuesses=True,
-                legend=self.parent.plotblk.legendChB.isChecked())
-            self.parent.canvas.draw()
+            self.plot_guess()
         else:
             dialog = dialogs.WarningDlg('Please, load equation first!')
             if dialog.exec_():
@@ -259,6 +273,9 @@ class EquationBlock(QWidget):
             self.parent.log.write("This eqation is not implemented yet.\n" +
                 "Please, choose other equation.")
         self.parent.eqname, self.parent.eqtype = eqname, eqtype
+        
+        # check again which sets are marked
+        self.parent.datablk.update_data()
         self.parent.log.write('**********************************************')
         dialog = dialogs.EquationDlg(self.parent.data, eqtype, eqname, 
             self.parent.log)
@@ -320,16 +337,25 @@ class PlotBlock(QWidget):
     def __init__(self, parent=None):
         super(PlotBlock, self).__init__(parent)
         self.parent = parent
-        #self.plot_legend = False
-        
-        # Prepare plot window
         layout = QVBoxLayout(self)
+        
+        checkHBox = QHBoxLayout()
         self.legendChB = QCheckBox("Show L&egend")
         self.legendChB.setChecked(True)
         #self.connect(self.legendChB, SIGNAL("stateChanged()"), self.on_something_changed)
-        self.parent.canvas = mqt.MatPlotWin()
+        checkHBox.addWidget(self.legendChB)
+        self.logXChB = QCheckBox("LogX")
+        self.logXChB.setChecked(False)
+        checkHBox.addWidget(self.logXChB)
+        self.logYChB = QCheckBox("LogY")
+        self.logYChB.setChecked(False)
+        checkHBox.addWidget(self.logYChB)
+        layout.addLayout(checkHBox)
+        
+        self.parent.figure = plt.figure()
+        self.parent.canvas = FigureCanvas(self.parent.figure)
+        #self.parent.canvas = mqt.MatPlotWin()
         canvastools = mqt.MatPlotTools(self.parent.canvas, self.parent)
-        layout.addWidget(self.legendChB)
         layout.addWidget(self.parent.canvas)
         layout.addWidget(canvastools)
         

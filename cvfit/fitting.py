@@ -41,7 +41,24 @@ class MultipleFitSession(object):
                 format(i+1, self.list[0].eq.names[i], np.mean(pars), 
                 np.std(pars)/sqrt(len(pars))))
         return str
-
+    
+    def prepare_fplot(self, type):
+        plot_list = []
+        if type == 'pooled':
+            X, Y = self.pooled.eq.calculate_plot(self.pooled.data.X, self.pooled.eq.pars)
+            plot_list.append([X,Y])
+        else:
+            for session in self.list:
+                if type == 'fit':
+                    pars = session.eq.pars
+                elif type == 'guess':
+                    pars = session.eq.guess
+                elif type == 'norm':
+                    pars = session.eq.normpars
+                X, Y = session.eq.calculate_plot(session.data.X, pars)
+                plot_list.append([X,Y])
+        return plot_list
+    
 
 class SingleFitSession(object):
     def __init__(self, dataset, equation, output=sys.stdout):

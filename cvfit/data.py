@@ -57,16 +57,17 @@ class XYDataSet(object):
         '''
 
         self.avX = np.unique(self.X)
-        self.avY = []
-        self.avS = []
+        avY, avS = [], []
         for con in self.avX:
             Y = self.Y[self.X == con]
             if len(Y) > 1:
-                self.avY.append(np.mean(Y))
-                self.avS.append(np.std(Y) / np.sqrt(len(Y)))
+                avY.append(np.mean(Y))
+                avS.append(np.std(Y) / np.sqrt(len(Y)))
             else:
-                self.avY.append(Y[0])
-                self.avS.append(0.0)
+                avY.append(Y[0])
+                avS.append(0.0)
+        self.avY = np.array(avY)
+        self.avS = np.array(avS)
 
     def size(self):
         return len(self.X)

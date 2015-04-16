@@ -90,7 +90,7 @@ class LoadDataDlg(QDialog):
         self.group1.addButton(self.rb2)
         layout.addWidget(self.rb2)
         self.group1.buttonClicked.connect(self.on_changed)
-                
+        
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
         buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
         self.connect(buttonBox, SIGNAL("accepted()"),
