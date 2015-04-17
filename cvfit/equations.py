@@ -23,6 +23,9 @@ class Equation(object):
         self._set_theta(theta)
         return self.equation(x, self.pars)
     
+    def normalise(self, data):
+        pass
+    
     def _set_theta(self, theta):
         for each in np.nonzero(self.fixed)[0]:   
             theta = np.insert(theta, each, self.pars[each])
@@ -57,6 +60,12 @@ class Linear(Equation):
         slope, intercept, r, p, stderr = stats.linregress(data.X, data.Y)
         self.guess = np.array([intercept, slope])
         self.pars = self.guess.copy()
+        
+    def calculate_plot(self, X, coeff):
+        plotX = np.linspace(np.floor(np.amin(X) - 1),
+            np.ceil(np.amax(X) + 1), 100)
+        plotY = self.equation(plotX, coeff)
+        return plotX, plotY
 
 
 class Hill(Equation):

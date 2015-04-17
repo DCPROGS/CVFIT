@@ -161,19 +161,22 @@ class ExcelSheetDlg(QDialog):
         
 
 class EquationDlg(QDialog):
-    def __init__(self, data, eqtype='Hill', eqname='Hill', output=sys.stdout, parent=None):
+    def __init__(self, data, eqtype='Hill', output=sys.stdout, parent=None):
         super(EquationDlg, self).__init__(parent)
-        self.setWindowTitle(eqname + ' equation settings...')
-        if eqtype == 'Hill':
+        self.setWindowTitle(eqtype + ' equation settings...')
+        if eqtype == 'Hill' or eqtype == 'Langmuir':
             from cvfit.equations import Hill as EQ
+        elif eqtype == 'Linear':
+            from cvfit.equations import Linear as EQ
         self.equations = []
         self.data = data
         self.log = output
+        self.eqtype = eqtype
         
         layoutMain = QVBoxLayout()
         self.layouts = []
         for i in range(len(self.data)):
-            equation = EQ(eqname)
+            equation = EQ(eqtype)
             layoutMain.addWidget(QLabel(self.data[i].title))
             layout = QHBoxLayout()
             layout.addWidget(QLabel("Number of components:"))
@@ -183,14 +186,15 @@ class EquationDlg(QDialog):
             compSpinBox.setValue(equation.ncomp)
             self.connect(compSpinBox, SIGNAL("valueChanged(int)"), self.on_setting_changed)
             layout.addWidget(compSpinBox)
-            y0fixedChB = QCheckBox("&Fix Y(0) or Y(inf) = 0?")
-            y0fixedChB.setChecked(True)
-            self.connect(y0fixedChB, SIGNAL("stateChanged(int)"), self.on_setting_changed)
-            layout.addWidget(y0fixedChB)
-            normChB = QCheckBox("&Data normalised?")
-            normChB.setChecked(equation.normalised)
-            self.connect(normChB, SIGNAL("stateChanged(int)"), self.on_setting_changed)
-            layout.addWidget(normChB)
+            if self.eqtype == 'Hill' or self.eqtype == 'Langmuir':
+                y0fixedChB = QCheckBox("&Fix Y(0) or Y(inf) = 0?")
+                y0fixedChB.setChecked(True)
+                self.connect(y0fixedChB, SIGNAL("stateChanged(int)"), self.on_setting_changed)
+                layout.addWidget(y0fixedChB)
+                normChB = QCheckBox("&Data normalised?")
+                normChB.setChecked(equation.normalised)
+                self.connect(normChB, SIGNAL("stateChanged(int)"), self.on_setting_changed)
+                layout.addWidget(normChB)
             self.equations.append(equation)
             self.layouts.append(layout)
             layoutMain.addLayout(layout)
@@ -210,17 +214,18 @@ class EquationDlg(QDialog):
     def on_setting_changed(self):
         for i in range(len(self.data)):
             self.equations[i].ncomp = self.layouts[i].itemAt(0).widget().value()
-            if self.layouts[i].itemAt(1).widget().isChecked():
-                self.equations[i].fixed[0] = self.layouts[i].itemAt(1).widget().isChecked()
-                self.equations[i].pars[0] = 0.0
-            self.equations[i].normalised = self.layouts[i].itemAt(2).widget().isChecked()
+            if self.eqtype == 'Hill' or self.eqtype == 'Langmuire':
+                if self.layouts[i].itemAt(1).widget().isChecked():
+                    self.equations[i].fixed[0] = self.layouts[i].itemAt(1).widget().isChecked()
+                    self.equations[i].pars[0] = 0.0
+                self.equations[i].normalised = self.layouts[i].itemAt(2).widget().isChecked()
         
     def return_equation(self):
         fits = MultipleFitSession(self.log)
         for i in range(len(self.data)):
             fits.add(SingleFitSession(self.data[i], self.equations[i], self.log))
         return fits
-
+    
 class GuessDlg(QDialog):
     def __init__(self, fs, parent=None):
         super(GuessDlg, self).__init__(parent)

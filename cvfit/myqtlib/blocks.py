@@ -95,8 +95,9 @@ class EquationBlock(QWidget):
         
         eqLabel = QLabel("Please choose equation:                                     ")
         self.eqTitles = [
-        '(1) Hill equation(s) (inc. or dec./common K or max)',
-        '(2) Langmuir hyperbola(s) plus straight line',
+        '(1) Hill equation',
+        '(2) Langmuir equation',
+        '(3) Straight line',
         #'(3) Polynomial (inc. straight line)',
         #'(4) Langmuir hyperbola(s) (inc. or dec.)',
         #'(5) Hill equation(s) plus straight line',
@@ -260,25 +261,20 @@ class EquationBlock(QWidget):
                 pass
         
     def on_equation(self):
+        self.parent.datablk.update_data()
+        self.parent.log.write('**********************************************')
         row = self.eqList.currentRow()
         if row == 0 or row == -1:
-            eqname = 'Hill'
-            eqtype = 'Hill'
-            from cvfit.equations import Hill as eqfit
+            self.parent.eqtype = 'Hill'
         elif row == 1:
-            eqname = 'Langmuir'
-            eqtype = 'Hill'
-            from cvfit.equations import Hill as eqfit
+            self.parent.eqtype = 'Langmuir'
+        elif row == 2:
+            self.parent.eqtype = 'Linear'
         else:
             self.parent.log.write("This eqation is not implemented yet.\n" +
                 "Please, choose other equation.")
-        self.parent.eqname, self.parent.eqtype = eqname, eqtype
-        
-        # check again which sets are marked
-        self.parent.datablk.update_data()
-        self.parent.log.write('**********************************************')
-        dialog = dialogs.EquationDlg(self.parent.data, eqtype, eqname, 
-            self.parent.log)
+        dialog = dialogs.EquationDlg(self.parent.data, self.parent.eqtype, 
+                self.parent.log)
         if dialog.exec_():
             self.parent.fits = dialog.return_equation()
         
