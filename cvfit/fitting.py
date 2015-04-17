@@ -472,36 +472,36 @@ def simplex(func, theta, *args):
                 if exvals[i] < exvals[il]: il = i
             if il == 0:
                 if irestart == nrestart or fsav == fval[0]:
-                    print ('\n Returned with best vertex')
+                    if verbose: print ('\n Returned with best vertex')
                     return simp[0], fval[0]
                 else:
                     L = 0
                     theta = simp[0]
-                    print ('\n Restarted at best vertex')
+                    if verbose: print ('\n Restarted at best vertex')
             elif il == 1:
                 if irestart == nrestart or fsav == fvalav:
-                    print ('\n Returned with averaged vertices')
+                    if verbose: print ('\n Returned with averaged vertices')
                     return pnew, fvalav
                 else:
                     L = 0
                     theta = pnew
-                    print ('\n Restarted at averaged vertices')
+                    if verbose: print ('\n Restarted at averaged vertices')
             elif il == 2:
                 if irestart == nrestart or fsav == absmin:
-                    print ('\n Returned with absolut minimum')
+                    if verbose: print ('\n Returned with absolut minimum')
                     return thmin, absmin
                 else:
                     L = 0
                     theta = thmin
-                    print ('\n Restarted at absolut minimum')
+                    if verbose: print ('\n Restarted at absolut minimum')
             else:
                 if irestart == nrestart or fsav == fval1:
-                    print ('\n Returned with result of local search minimum')
+                    if verbose: print ('\n Returned with result of local search minimum')
                     return pnew1, fval1
                 else:
                     L = 0
                     theta = pnew1
-                    print ('\n Restarted at result of local search minimum')
+                    if verbose: print ('\n Restarted at result of local search minimum')
 
 
 
