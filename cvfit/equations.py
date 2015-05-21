@@ -75,7 +75,10 @@ class Hill(Equation):
         """
         self.eqname = eqname
         self.ncomp = 1
-        self.pars = pars
+        if pars:
+            self.pars = pars
+        else:
+            self.pars = [0.0, 100.0, 10.0, 1.0]
         if eqname == 'Hill':
             self.fixed = [True, False, False, False]
             self.names = ['Ymin', 'Ymax', 'EC50', 'nH  ']
@@ -89,7 +92,7 @@ class Hill(Equation):
         '''
         The hill equation.
         '''
-        return (coeff[0] + (coeff[1] * (conc / coeff[2]) ** coeff[3]) / 
+        return (coeff[0] + ((coeff[1] - coeff[0]) * (conc / coeff[2]) ** coeff[3]) / 
             (1 + (conc / coeff[2]) ** coeff[3]))
             
     def normalise(self, data):
@@ -120,7 +123,7 @@ class Hill(Equation):
                 self.guess[1] = 1
             else:
                 # Determine Ymax
-                self.guess[1] = np.mean(data.Y[data.X == data.X[-1]]) - self.guess[0]
+                self.guess[1] = np.mean(data.Y[data.X == data.X[-1]])# - self.guess[0]
         else: # Response decreases with concentration
             # Determine Y(0)
             if self.fixed[0]:
@@ -128,7 +131,7 @@ class Hill(Equation):
             else:
                 self.guess[0] = np.mean(data.Y[data.X == data.X[-1]])
             # Determine Ymin
-            self.guess[1] = np.mean(data.Y[data.X == data.X[0]]) - self.guess[0]
+            self.guess[1] = np.mean(data.Y[data.X == data.X[0]])# - self.guess[0]
         # Determine Kr
         self.guess[2] = 10 ** ((np.log10(data.X[0]) + np.log10(data.X[-1])) / 2)
         # Determine nH  
@@ -150,7 +153,7 @@ class Hill(Equation):
         
     def calculate_plot(self, X, coeff):
         plotX = 10 ** np.linspace(np.floor(np.amin(np.log10(X)) - 1),
-            np.ceil(np.amax(np.log10(X))), 100)
+            np.ceil(np.amax(np.log10(X)) + 1), 100)
         plotY = self.equation(plotX, coeff)
         return plotX, plotY
 
