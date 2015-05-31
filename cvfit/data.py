@@ -10,12 +10,16 @@ class XYDataSet(object):
         self.Y = []
         self.S = [] # Standard deviation of the mean
         self.W = [] # Weight
-        self.title = None
+        self.title = '*no*name*'
         self._weightmode = 1
         self.increase = None
 
     def from_columns(self, X, Y, S=None):
-        self.X, self.Y, self.S = X, Y, S
+        self.X, self.Y = np.array(X), np.array(Y)
+        if S == None:
+            self.S = np.zeros((len(self.X)))
+        else:
+            self.S = np.array(S)
         if self.S.any() == 0:
             self.W = np.ones((len(self.X)))
         else:

@@ -18,7 +18,17 @@ class Equation(object):
     def equation(self, x, coeff):
         ''' '''
         pass
-            
+    
+    def calculate_random(self, x, sd):
+        """ """
+        if isinstance(x, float):
+            return np.random.normal(self.equation(x, self.pars), sd, 1)[0]
+        elif isinstance(x, list) or isinstance(x, np.ndarray):
+            resp = []
+            for each in x:
+                resp.append(np.random.normal(self.equation(each, self.pars), sd, 1)[0])
+            return np.array(resp)
+        
     def to_fit(self, theta, x):
         self._set_theta(theta)
         return self.equation(x, self.pars)
