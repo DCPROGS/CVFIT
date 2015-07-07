@@ -41,8 +41,39 @@ class Equation(object):
             theta = np.insert(theta, each, self.pars[each])
         self.pars = theta
     def _get_theta(self):
-        return self.pars[np.nonzero(np.invert(self.fixed))[0]]
+        theta = self.pars[np.nonzero(np.invert(self.fixed))[0]]
+        if isinstance(theta, float):
+            theta = np.array([theta])
+        return theta
     theta = property(_get_theta, _set_theta)
+    
+
+class GHK(Equation):
+    """Goldman-Hodgkin-Katz equation for bi-ionic condition"""
+    def __init__(self, eqname, pars=None):
+        """
+        pars = [r]
+        """
+        self.eqname = eqname
+        self.pars = pars
+        self.fixed = [False, True, True, True]
+        self.names = ['r', 'totOut', 'In1', 'In2']
+        
+    def equation(self, x, pars):
+        '''
+        The GHK equation.
+        '''
+        return 25 * np.log( (x + pars[0] * (pars[1] - x)) / (pars[2] + pars[0] * pars[3]) )
+   
+    def propose_guesses(self, data=None):
+        '''
+        '''
+        self.guess = self.pars.copy()
+        
+    def calculate_plot(self, X, coeff):
+        plX = np.linspace(np.floor(np.amin(X)), np.ceil(np.amax(X)), 100)
+        plY = self.equation(plX, coeff)
+        return plX, plY
     
 
 class Linear(Equation):

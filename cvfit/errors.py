@@ -65,7 +65,7 @@ def SSDlik(theta, func, set):
         Log likelihood of SSD function.
     """
     S = SSD(theta, (func, set.X, set.Y, set.W))
-    Sres = math.sqrt(S / (set.size() - len(func.fixed)))
+    Sres = math.sqrt(S / (set.size())) # - len(func.fixed)))
     return set.size() * math.log(math.sqrt(2 * math.pi) * Sres) + S / (2 * Sres**2)
 
 def SSDlik_contour(x, num, theta, func, set):
