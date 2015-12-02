@@ -15,9 +15,9 @@ class Report(object):
     A class that makes markdown file and output it as html file
     '''
 
-    def __init__(self, filename):
+    def __init__(self, filename, workdir=None):
         
-        self.path, self.filename = set_cwd('CVFIT_fits', filename)
+        self.path, self.filename = set_cwd(workdir, filename)
         self.mdfile = 'report_' + self.filename + '.md'
         self.f = open(self.mdfile, 'w')
          
@@ -85,9 +85,14 @@ class Report(object):
 
 
 def set_cwd(dirname, filename):
-    os.chdir(os.path.expanduser("~"))
-    if platform.system() == 'Windows':
-        os.chdir(filename.split('/')[0]+'//')
+    
+    if dirname:
+        dirname += '/CVFIT_fits'
+    else:
+        dirname = 'CVFIT_fits'
+        os.chdir(os.path.expanduser("~"))
+        if platform.system() == 'Windows':
+            os.chdir(filename.split('/')[0]+'//')
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
     os.chdir(dirname)
