@@ -47,6 +47,12 @@ class Equation(object):
         return theta
     theta = property(_get_theta, _set_theta)
     
+    def __repr__(self):
+        txt = "equation " + self.eqname + "\n"
+        for name, par in zip(self.names, self.pars):
+            txt += "{} = {}\n".format(name, par)
+        return txt
+    
 
 class GHK(Equation):
     """Goldman-Hodgkin-Katz equation for bi-ionic condition"""
@@ -74,8 +80,8 @@ class GHK(Equation):
         plX = np.linspace(np.floor(np.amin(X)), np.ceil(np.amax(X)), 100)
         plY = self.equation(plX, coeff)
         return plX, plY
-    
 
+    
 class Linear(Equation):
     def __init__(self, eqname, pars=None):
         """
@@ -102,6 +108,31 @@ class Linear(Equation):
         self.guess = np.array([intercept, slope])
         self.pars = self.guess.copy()
         
+    def calculate_plot(self, X, coeff):
+        plotX = np.linspace(np.floor(np.amin(X) - 1),
+            np.ceil(np.amax(X) + 1), 100)
+        plotY = self.equation(plotX, coeff)
+        return plotX, plotY
+
+    
+
+class Exponential(Equation):
+    def __init__(self, eqname, pars=None):
+        """
+        pars = [a, b]
+        """
+        self.eqname = eqname
+        self.ncomp = 1
+        self.pars = pars
+        self.fixed = [False, False]
+        self.names = ['area', 'tau']
+        
+    def equation(self, x, coeff):
+        '''
+        The exponential equation.
+        '''
+        return coeff[0] / coeff[1] + math.exp(-x /coeff[1]) 
+
     def calculate_plot(self, X, coeff):
         plotX = np.linspace(np.floor(np.amin(X) - 1),
             np.ceil(np.amax(X) + 1), 100)

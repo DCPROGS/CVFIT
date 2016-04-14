@@ -16,7 +16,7 @@ class XYDataSet(object):
 
     def from_columns(self, X, Y, S=None):
         self.X, self.Y = np.array(X), np.array(Y)
-        if S == None:
+        if S is None:
             self.S = np.zeros((len(self.X)))
         else:
             self.S = np.array(S)
@@ -29,30 +29,18 @@ class XYDataSet(object):
         self._set_trend()
         
     def pool(self, X, Y, S):
-        self.X = np.hstack((self.X, X))
-        self.Y = np.hstack((self.Y, Y))
-        self.S = np.hstack((self.S, S))
-        self.W = np.ones((len(self.X)))
+        self.X, self.Y = np.hstack((self.X, X)), np.hstack((self.Y, Y))
+        self.S, self.W = np.hstack((self.S, S)), np.ones((len(self.X)))
         self.sort()
         self._set_trend()
         self.title = 'Pooled data'
         
     def sort(self):
         # Sort the data according to concentration
-#        temp = np.vstack((self.X, self.Y))
-#        temp = np.vstack((temp, self.S))
-#        temp = np.vstack((temp, self.W))
-#        temp.sort()
-#        self.X = temp[0]
-#        self.Y = temp[1]
-#        self.S = temp[2]
-#        self.W = temp[3]
         
         idx = np.argsort(self.X)
-        self.X = self.X[idx]
-        self.Y = self.Y[idx]
-        self.S = self.S[idx]
-        self.W = self.W[idx]
+        self.X, self.Y = self.X[idx], self.Y[idx]
+        self.S, self.W = self.S[idx], self.W[idx]
         
     def average_pooled(self):
         '''
@@ -141,8 +129,7 @@ class XYDataSet(object):
         return str
     
     
-def read_sets_from_Excel(fname, set_col, line_skip, sheet, 
-    namesin=False, weight=1):
+def read_sets_from_Excel(fname, set_col=0, line_skip=0, sheet=0):
     """
     Read Excel file sheet to load data.
     """
@@ -165,7 +152,7 @@ def read_sets_from_Excel(fname, set_col, line_skip, sheet,
         set = XYDataSet()
         set.from_columns(np.array(X), np.array(Y), np.array(S))
         set.title = 'Set ' + str(i+1)
-        set.weightmode = weight
+        set.weightmode = 1
         setlist.append(set)
     return setlist
 
