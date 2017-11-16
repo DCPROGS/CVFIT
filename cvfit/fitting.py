@@ -31,16 +31,17 @@ class MultipleFitSession(object):
         self.pooled = SingleFitSession(dataset, self.list[0].eq, output)
         
     def string_average_estimates(self):
-        str = 'Average of estimates of {0:d} sets:'.format(len(self.list))
+        txt = 'Average of estimates of {0:d} sets (mean +/- sdm):'.format(len(self.list))
        
         for i in range(len(self.list[0].eq.names)):
             pars = []
             for j in range(len(self.list)):
                 pars.append(self.list[j].eq.pars[i])
-            str += ('\nParameter {0:d}: {1}  \t= {2:.6g} +/- {3:.6g}'.
+            txt += ('\nParameter {0:d}: {1}  \t= {2:.6g} +/- {3:.6g}'.
                 format(i+1, self.list[0].eq.names[i], np.mean(pars), 
                 np.std(pars)/sqrt(len(pars))))
-        return str
+            txt += ('\n\t(all: ' + '\t'.join(str(x) for x in pars))
+        return txt
     
     def prepare_fplot(self, type):
         plot_list = []
@@ -105,57 +106,57 @@ class SingleFitSession(object):
         
     def string_estimates(self):
         j = 0
-        str = 'Number of point fitted = {0:d}'.format(self.data.size())
+        txt = 'Number of point fitted = {0:d}'.format(self.data.size())
         
-        str += '\nNumber of parameters estimated = {0:d}'.format(self.kfit)
-        str += '\nDegrees of freedom = {0:d}'.format(self.ndf)
+        txt += '\nNumber of parameters estimated = {0:d}'.format(self.kfit)
+        txt += '\nDegrees of freedom = {0:d}'.format(self.ndf)
         
-        str += ('\nResidual error SD = {0:.3f}      (variance = {1:.3f})'.
+        txt += ('\nResidual error SD = {0:.3f}      (variance = {1:.3f})'.
             format(self.Sres, self.var))
         
         for i in range(len(self.eq.names)):
-            str += '\nParameter {0:d}: {1}  \t= {2:.6g}  \t'.format(i+1, self.eq.names[i], self.eq.pars[i])
+            txt += '\nParameter {0:d}: {1}  \t= {2:.6g}  \t'.format(i+1, self.eq.names[i], self.eq.pars[i])
             if not self.eq.fixed[i]:
-                str += '  Approx SD = {0:.6g}\t'.format(self.aproxSD[j])
-                str += '  CV = {0:.1f}'.format(self.CVs[j])
+                txt += '  Approx SD = {0:.6g}\t'.format(self.aproxSD[j])
+                txt += '  CV = {0:.1f}'.format(self.CVs[j])
                 j += 1
             else:
-                str += '  (fixed)'
+                txt += '  (fixed)'
 
-        str += ('\nMinimum SSD = {0:.3f}; \nMax log-likelihood = {1:.3f}'.
+        txt += ('\nMinimum SSD = {0:.3f}; \nMax log-likelihood = {1:.3f}'.
             format(self.Smin, self.Lmax))
-        str += ('\nCorrelation matrix = ' + 
+        txt += ('\nCorrelation matrix = ' + 
             '[!!!! PRINTOUT OF CORRELATION MATRIX NOT IMPLEMENTED YET. SORRY.\n')
 #        self.output.write(correl)
         if np.any(np.absolute(self.correl - np.identity(self.kfit)) > 0.9):
-            str += ("\nWARNING: SOME PARAMETERS ARE STRONGLY CORRELATED (coeff > 0.9); try different guesses")
+            txt += ("\nWARNING: SOME PARAMETERS ARE STRONGLY CORRELATED (coeff > 0.9); try different guesses")
 
         if np.any(self.CVs > 33):
-            str += "\nWARNING: SOME PARAMETERS POORLY DEFINED (CV > 33%); try different guesses"
-        return str
+            txt += "\nWARNING: SOME PARAMETERS POORLY DEFINED (CV > 33%); try different guesses"
+        return txt
 
         
     def string_liklimits(self):
         j = 0
-        str = '\nLIKELIHOOD INTERVALS\n'
-        str += ('{0:.3g}-unit Likelihood Intervals'.format(self.m) +
+        txt = '\nLIKELIHOOD INTERVALS\n'
+        txt += ('{0:.3g}-unit Likelihood Intervals'.format(self.m) +
             '  (equivalent SD for Gaussian- {0:.3g})'.format(self.clim))
-        str += '\nLmax= {0:.6g};   Lcrit= {1:.6g}'.format(self.Lmax, self.Lcrit)
+        txt += '\nLmax= {0:.6g};   Lcrit= {1:.6g}'.format(self.Lmax, self.Lcrit)
         for i in range(len(self.eq.names)):
-            str += '\nParameter {0:d}:   {1}\t= {2:.6g}'.format(i+1, self.eq.names[i], self.eq.pars[i])
+            txt += '\nParameter {0:d}:   {1}\t= {2:.6g}'.format(i+1, self.eq.names[i], self.eq.pars[i])
             if not self.eq.fixed[i]:
                 try:
-                    str += '\t  LOWER = {0:.6g}'.format(self.Llimits[j][0])
+                    txt += '\t  LOWER = {0:.6g}'.format(self.Llimits[j][0])
                 except:
-                    str += '\t  LOWER limit not found'
+                    txt += '\t  LOWER limit not found'
                 try:
-                    str += '\t  UPPER = {0:.6g}'.format(self.Llimits[j][1])
+                    txt += '\t  UPPER = {0:.6g}'.format(self.Llimits[j][1])
                 except:
-                    str += '\t  UPPER limit not found'
+                    txt += '\t  UPPER limit not found'
                 j += 1
             else:
-                str += '\t  (fixed)'
-        return str
+                txt += '\t  (fixed)'
+        return txt
 
 
 def load_data(example=False):
