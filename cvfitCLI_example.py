@@ -9,18 +9,15 @@ from cvfit.fitting import SingleFitSession, MultipleFitSession
 
 if __name__ == "__main__":
     
+    # load data set
     sets, fname = fitting.load_data(example=True)
     print('File {0} loaded'.format(fname))
     print('{0:d} sets found.'.format(len(sets)))
-    
-    #sets = fitting.set_weights(sets)
     for i in range(len(sets)):
         print ('\nSet #{0:d}:'.format(i+1))
         print (sets[i])
-    #settings = fitting.general_settings()
-    
-    #eqname = fitting.choose_equation()
-    #print (eqname)
+
+    # load equation
     eqname = 'Hill'
     if eqname == 'Hill' or eqname == 'Langmuir':
         from cvfit.equations import Hill as eqfit
@@ -36,7 +33,6 @@ if __name__ == "__main__":
         print('\t' + fs.data.title + ' fit finished')
         print(fs.string_estimates())
         print(fs.string_liklimits())
-        #plots.plot_hill_fit_result_single(fname, fsession.data, fsession.eq, plotguess=True)
         fitsessions.add(fs)
     print('\n*************************************************')
     print('\tAverage of all fits:')
