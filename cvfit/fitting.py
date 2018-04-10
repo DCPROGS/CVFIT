@@ -168,7 +168,7 @@ def load_data(example=False):
         filename = data.ask_for_file()
     try:
         #allsets = data.read_sets_from_csv(filename, 'csv', col=2, header=0, namesin=False, weight=1)
-        allsets = data.read_sets_from_Excel(filename, 2, 0, 0, namesin=False, weight=1)
+        allsets = data.read_sets_from_Excel(filename, 2, 0, 0) #, namesin=False, weight=1)
     except ValueError:
         print('fitting.py: WARNING: Oops! File did not load properly...')
     return allsets, filename
