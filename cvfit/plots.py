@@ -4,10 +4,10 @@ def plot(datasets, fplotsets=None, fplotline='b-',
     fig=None, logX=False, logY=False, legend=True, norm=False, pooled=False):
         
     newfig = False
-    if not fig:
+    if fig is None:
         fig, ax = subplots()
         newfig = True
-    ax = fig.add_subplot(111)
+    #ax = fig.add_subplot(111)
     ax.clear()
         
     for set in datasets:
