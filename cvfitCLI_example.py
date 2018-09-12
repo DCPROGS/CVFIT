@@ -10,23 +10,23 @@ from cvfit.fitting import SingleFitSession, MultipleFitSession
 if __name__ == "__main__":
     
     # load data set
-    sets, fname = fitting.load_data(example=True)
+    datasets, fname = fitting.load_data(example=True)
     print('File {0} loaded'.format(fname))
-    print('{0:d} sets found.'.format(len(sets)))
-    for i in range(len(sets)):
+    print('{0:d} sets found.'.format(len(datasets)))
+    for i in range(len(datasets)):
         print ('\nSet #{0:d}:'.format(i+1))
-        print (sets[i])
+        print (datasets[i])
 
     # load equation
     eqname = 'Hill'
     if eqname == 'Hill' or eqname == 'Langmuir':
-        from cvfit.equations import Hill as eqfit
+        from cvfit.equations import Hill
          
     # initiate fitting sessions, fit data and print results
     fitsessions = MultipleFitSession()
-    for set in sets:
-        equation = eqfit(eqname)
-        fs = SingleFitSession(set, equation)
+    for each in datasets:
+        equation = Hill(eqname)
+        fs = SingleFitSession(each, equation)
         fs.fit()
         fs.calculate_errors()
         print('\n*************************************************')
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     
     # plot fitted
     fplots = fitsessions.prepare_fplot('fit')
-    fig = plots.cvfit_plot(sets, fig=None, 
+    fig = plots.cvfit_plot(datasets, fig=None, 
         fplotsets=fplots, fplotline='b-',
         logX=True, logY=False, legend=True)
     
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     for fs in fitsessions.list:
         fs.eq.normalise(fs.data)
     fplots = fitsessions.prepare_fplot('norm')
-    plots.cvfit_plot(sets, fig=None, fplotsets=fplots, fplotline='b-',
+    plots.cvfit_plot(datasets, fig=None, fplotsets=fplots, fplotline='b-',
         logX=True, logY=False, legend=True, norm=True)
     
     # pool data and fit pooled
