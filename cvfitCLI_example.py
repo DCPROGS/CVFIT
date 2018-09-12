@@ -40,7 +40,7 @@ if __name__ == "__main__":
     
     # plot fitted
     fplots = fitsessions.prepare_fplot('fit')
-    fig = plots.plot(sets, fig=None, 
+    fig = plots.cvfit_plot(sets, fig=None, 
         fplotsets=fplots, fplotline='b-',
         logX=True, logY=False, legend=True)
     
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     for fs in fitsessions.list:
         fs.eq.normalise(fs.data)
     fplots = fitsessions.prepare_fplot('norm')
-    plots.plot(sets, fig=None, fplotsets=fplots, fplotline='b-',
+    plots.cvfit_plot(sets, fig=None, fplotsets=fplots, fplotline='b-',
         logX=True, logY=False, legend=True, norm=True)
     
     # pool data and fit pooled
@@ -63,6 +63,6 @@ if __name__ == "__main__":
     
     # plot pooled data fit
     fplots = fitsessions.prepare_fplot('pooled')
-    plots.plot([fitsessions.pooled.data], fig=None, fplotsets=fplots, 
+    plots.cvfit_plot([fitsessions.pooled.data], fig=None, fplotsets=fplots, 
         fplotline='b-', logX=True, logY=False, legend=False, pooled=True)
     

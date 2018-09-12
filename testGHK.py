@@ -3,6 +3,7 @@ __date__ = "$03-Apr-2015 17:41:27$"
 
 import os
 import pylab as plt
+import numpy as np
 
 from cvfit import data
 from cvfit.equations import GHK as eqfit
@@ -15,7 +16,7 @@ if __name__ == "__main__":
     set0 = data.read_sets_from_Excel(filename, 2, 0, 3)[0]
     print("Loaded: " + os.path.split(str(filename))[1])
     print (str(set0))
-    equation = eqfit('GHK', pars=[1.0, 150.0, 145.0, 5.0])
+    equation = eqfit('GHK', pars=np.array([1.0, 150.0, 145.0, 5.0]))
     fsession = SingleFitSession(set0, equation)
     fsession.fit()
     fsession.calculate_errors()

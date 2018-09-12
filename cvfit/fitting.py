@@ -3,6 +3,7 @@ import sys
 from math import sqrt, fabs
 from scipy import optimize
 import numpy as np
+from array import array
 
 import cvfit
 from cvfit import data
@@ -77,11 +78,12 @@ class SingleFitSession(object):
         #    args=(self.eq, self.data.X, self.data.Y, self.data.W), full_output=1)
         coeffs, smin = simplex(SSD, self.eq.theta, self.eq, self.data.X, self.data.Y, self.data.W)
         self.eq.theta = coeffs
+        self.Smin = smin
        
     def calculate_errors(self):
 
-        self.Smin = SSD(self.eq.theta, (self.eq,
-            self.data.X, self.data.Y, self.data.W))
+        #self.Smin = SSD(self.eq.theta, (self.eq,
+        #    self.data.X, self.data.Y, self.data.W))
         #print '\n SSD \n', Smin
         #hes = errors.hessian(coeffs, eq, set)
         #print '\n Observed information matrix = \n', hes
