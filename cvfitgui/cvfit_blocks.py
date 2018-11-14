@@ -6,8 +6,8 @@ import socket
 import datetime
 
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -15,7 +15,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from cvfit import data
 from cvfit import plots
 from cvfit.fitting import SingleFitSession
-#from dcqtgui import myqtcommon as mqt
 from cvfitgui import cvfit_dialogs as dialogs
 from cvfit.report import Report
 
@@ -61,13 +60,19 @@ class DataBlock(QWidget):
         self.parent.canvas.draw()
 
     def on_load(self):
+        try:
+            self.__on_load()
+        except:
+            pass
+
+    def __on_load(self):
         filename, filt= QFileDialog.getOpenFileName(self.parent,
                 "Open a data file...", self.parent.workdir,
                 "Excel files (*.xls *.xlsx);;CSV files (*.csv);;TXT files (*.txt);;All files (*.*)")
         self.parent.log.write('\nLoading file: ' + filename)
         type = filename.split('.')[-1]
         self.parent.workdir = os.path.dirname(filename)
-        
+
         xlssheet = None
         if type == 'xls' or type == 'xlsx':
             book = xlrd.open_workbook(filename)
@@ -165,11 +170,11 @@ class EquationBlock(QWidget):
             logY=self.parent.plotblk.logYChB.isChecked(),
             legend=self.parent.plotblk.legendChB.isChecked(), pooled=True)
         self.parent.canvas.draw()
-        fname = 'pooled_data.png'
-        self.parent.figure.savefig(fname)
-
+        fname = 'pooled_data'
         self.parent.report.title('Pooled data', 1)
-        self.parent.report.image(fname)
+        self.parent.figure.savefig(fname+'.png')
+        self.parent.figure.savefig(fname+'.pdf')
+        self.parent.report.image(fname+'.png')
         
         fout = open(fname[:-4] + '1.txt', 'w')
         for i in range(len(self.parent.fits.pooled.data.avX)):
@@ -202,13 +207,14 @@ class EquationBlock(QWidget):
             logY=self.parent.plotblk.logYChB.isChecked(),
             legend=self.parent.plotblk.legendChB.isChecked(), pooled=True)
         self.parent.canvas.draw()
-        fname = 'fitted_normalised_pooled.png'
-        self.parent.figure.savefig(fname)
+        fname = 'fitted_normalised_pooled'
 
         self.parent.report.title('Pooled data fit finished', 1)
         self.parent.report.paragraph(self.parent.fits.pooled.string_estimates())
         self.parent.report.paragraph(self.parent.fits.pooled.string_liklimits())
-        self.parent.report.image(fname)
+        self.parent.figure.savefig(fname+'.png')
+        self.parent.figure.savefig(fname+'.pdf')
+        self.parent.report.image(fname+'.png')
         
         fout = open(fname[:-4] + '1.txt', 'w')
         for i in range(len(self.parent.fits.pooled.data.avX)):
@@ -227,7 +233,7 @@ class EquationBlock(QWidget):
         for session in self.parent.fits.list:
             session.eq.normalise(session.data)
 
-        fname = 'all_fitted_normalised_curves.png'
+        fname = 'all_fitted_normalised_curves'
         fplots = self.parent.fits.prepare_fplot('norm')
         plots.cvfit_plot(self.parent.data, fig=self.parent.figure, 
             fplotsets=fplots, fplotline='b-',
@@ -235,9 +241,13 @@ class EquationBlock(QWidget):
             logY=self.parent.plotblk.logYChB.isChecked(),
             legend=self.parent.plotblk.legendChB.isChecked(), norm=True)
         self.parent.canvas.draw()
-        self.parent.figure.savefig(fname)
         self.parent.report.title('Data normalised to the fitted maxima', 1)
-        self.parent.report.image(fname)
+        self.parent.figure.savefig(fname+'.png')
+        self.parent.figure.savefig(fname+'.pdf')
+        self.parent.report.image(fname+'.png')
+
+    def update_progress_bar(self, val):
+        self.pbar.setValue.connect(val)
         
     def on_fit(self):
 
@@ -247,10 +257,8 @@ class EquationBlock(QWidget):
         for fit in self.parent.fits.list:
             self.parent.report.dataset(fit.data.title, str(fit.data))
 
-        progressDlg = QProgressDialog('Fitting data set {0:d}'.format(1),
-                                 "Cancel", 1, len(self.parent.fits.list))
-        progressDlg.setWindowTitle('Fitting...')
-        i = 1
+        #progress = QProgressDialog('Fitting...', None, 0, len(self.parent.fits.list))
+        #i = 1
         for fs in self.parent.fits.list:
             fs.fit()
             fs.calculate_errors()
@@ -261,19 +269,18 @@ class EquationBlock(QWidget):
             self.parent.report.title('{0} fit finished'.format(fs.data.title), 1)
             self.parent.report.paragraph(fs.string_estimates())
             self.parent.report.paragraph(fs.string_liklimits())
-            
-            progressDlg.setValue(i)
-            i += 1
-            progressDlg.setLabelText('Fitting data set {0:d}'.format(i))
-            if progressDlg.wasCanceled():
-                break
+            #i =+ 1
+            #progressDlg.setLabelText('Fitting data set {0:d}'.format(i))
+            #QApplication.processEvents()
+            #if progressDlg.wasCanceled():
+            #    break
                 
         self.parent.log.write('\n\nAverage of all fits:')
         self.parent.log.write(self.parent.fits.string_average_estimates())
         self.parent.report.title('Average of all fits:', 1)
         self.parent.report.paragraph(self.parent.fits.string_average_estimates())
 
-        fname = 'all_fittedcurves.png'
+        fname = 'all_fittedcurves'
         self.fitplots = self.parent.fits.prepare_fplot('fit')
         plots.cvfit_plot(self.parent.data, fig=self.parent.figure, 
             fplotsets=self.fitplots, fplotline='b-',
@@ -285,8 +292,9 @@ class EquationBlock(QWidget):
 #        plots.plot(self.parent.data, self.parent.fits, axes=self.parent.canvas.axes, plotFit=True, 
 #            legend=self.parent.plotblk.legendChB.isChecked()) #, save_fig_name=fname)
 #        self.parent.canvas.draw()
-        self.parent.figure.savefig(fname)
-        self.parent.report.image(fname)
+        self.parent.figure.savefig(fname+'.png')
+        self.parent.figure.savefig(fname+'.pdf')
+        self.parent.report.image(fname+'.png')
         
     def plot_guess(self):
         fplots = self.parent.fits.prepare_fplot('guess')
@@ -377,8 +385,8 @@ class TextBlock(QWidget):
         self.parent.report.outputhtml()
         
     def on_about(self):
-        dialog = mqt.AboutDlg(self)
-        if dialog.exec_():
+        #dialog = mqt.AboutDlg(self)
+        #if dialog.exec_():
             pass
         
         
@@ -394,7 +402,7 @@ class PlotBlock(QWidget):
         #self.connect(self.legendChB, SIGNAL("stateChanged()"), self.on_something_changed)
         checkHBox.addWidget(self.legendChB)
         self.logXChB = QCheckBox("LogX")
-        self.logXChB.setChecked(False)
+        self.logXChB.setChecked(True)
         checkHBox.addWidget(self.logXChB)
         self.logYChB = QCheckBox("LogY")
         self.logYChB.setChecked(False)
