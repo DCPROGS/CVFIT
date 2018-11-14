@@ -15,19 +15,9 @@ class WarningDlg(QDialog):
     def __init__(self, message, parent=None):
         super(WarningDlg, self).__init__(parent)
         self.setWindowTitle('Warning...')
- 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel(message))
-        
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
-        buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-        #self.connect(buttonBox, SIGNAL("accepted()"),
-        #     self, SLOT("accept()"))
-        #self.connect(buttonBox, SIGNAL("rejected()"),
-        #     self, SLOT("reject()"))
-        layout.addWidget(buttonBox)
+        layout.addWidget(ok_cancel_button(self))
 
 
 class LoadDataDlg(QDialog):
@@ -93,16 +83,8 @@ class LoadDataDlg(QDialog):
         self.group1.addButton(self.rb2)
         layout.addWidget(self.rb2)
         self.group1.buttonClicked.connect(self.on_changed)
-        
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
-        buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
-        #self.connect(buttonBox, SIGNAL("accepted()"),
-        #     self, SLOT("accept()"))
-        #self.connect(buttonBox, SIGNAL("rejected()"),
-        #     self, SLOT("reject()"))
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-        layout.addWidget(buttonBox)     
+          
+        layout.addWidget(ok_cancel_button(self))
              
     def on_changed(self):
         if self.group1.checkedId() == -2:
@@ -133,18 +115,11 @@ class ExcelSheetDlg(QDialog):
         #self.connect(self.List, SIGNAL("itemSelectionChanged()"), self.sheetSelected)
         self.List.itemSelectionChanged.connect(self.sheetSelected)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|
-            QDialogButtonBox.Cancel)
-        buttonBox.accepted.connect(self.accept)
-        #self.connect(buttonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        buttonBox.rejected.connect(self.reject)
-        #self.connect(buttonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
-
         layout1 = QHBoxLayout()
         layout1.addWidget(self.List)
         layout2 = QVBoxLayout()
         layout2.addLayout(layout1)
-        layout2.addWidget(buttonBox)
+        layout2.addWidget(ok_cancel_button(self))
 
         self.setLayout(layout2)
         self.resize(200, 300)
@@ -205,19 +180,10 @@ class EquationDlg(QDialog):
                 layout.addWidget(normChB)
             self.layouts.append(layout)
             layoutMain.addLayout(layout)
-
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
-        buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-        #self.connect(buttonBox, SIGNAL("accepted()"),
-        #     self, SLOT("accept()"))
-        #self.connect(buttonBox, SIGNAL("rejected()"),
-        #     self, SLOT("reject()"))
+        
         buttonLayout = QHBoxLayout()
         buttonLayout.addStretch()
-        buttonLayout.addWidget(buttonBox)
-        layoutMain.addLayout(buttonLayout)
+        layoutMain.addWidget(ok_cancel_button(self))
         self.setLayout(layoutMain)
 
     def on_setting_changed(self):
@@ -263,16 +229,7 @@ class GuessDlg(QDialog):
             self.layouts.append(layout)
             layoutMain.addLayout(layout)
 
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
-        buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
-        buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
-
-        #self.connect(buttonBox, SIGNAL("accepted()"),
-        #     self, SLOT("accept()"))
-        #self.connect(buttonBox, SIGNAL("rejected()"),
-        #     self, SLOT("reject()"))
-        layoutMain.addWidget(buttonBox)
+        layoutMain.addWidget(ok_cancel_button(self))
         self.setLayout(layoutMain)
         self.setWindowTitle('Edit guesses...')
 
@@ -286,3 +243,16 @@ class GuessDlg(QDialog):
         for i in range(len(self.fs.list)):
             self.fs.list[i].eq.pars = self.fs.list[i].eq.guess
         return self.fs
+
+def ok_cancel_button(parent):
+    buttonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+    buttonBox.button(QDialogButtonBox.Ok).setDefault(True)
+    buttonBox.accepted.connect(parent.accept)
+    buttonBox.rejected.connect(parent.reject)
+    # Following is for pyqt4
+    #self.connect(buttonBox, SIGNAL("accepted()"),
+    #     self, SLOT("accept()"))
+    #self.connect(buttonBox, SIGNAL("rejected()"),
+    #     self, SLOT("reject()"))
+    return buttonBox
+    
