@@ -7,7 +7,7 @@ def cvfit_plot(datasets, fplotsets=None, fplotline='b-',
     if fig is None:
         ax = plt.gca()
         newfig = True
-    #ax = fig.add_subplot(111)
+    ax = fig.add_subplot(111)
     ax.clear()
         
     for each in datasets:
