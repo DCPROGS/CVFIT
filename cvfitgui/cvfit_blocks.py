@@ -252,7 +252,7 @@ class EquationBlock(QWidget):
     def on_fit(self):
 
         self.parent.report = Report(self.parent.fname, self.parent.workdir)
-        self.parent.report.title('Original data:', 1)
+        self.parent.report.title('Data loaded from:  ' + self.parent.fname, 1)
         self.parent.report.paragraph('Number of datasets loaded: ' + str(len(self.parent.fits.list)))
         for fit in self.parent.fits.list:
             self.parent.report.dataset(fit.data.title, str(fit.data))

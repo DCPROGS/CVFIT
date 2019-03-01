@@ -98,7 +98,9 @@ class SingleFitSession(object):
         self.Sres, self.Lmax = sqrt(self.var), -SSDlik(self.eq.theta, self.eq, self.data)
 
         tval = errors.tvalue(self.ndf)
-        self.m = tval * tval / 2.0
+        # TODO: choose m value from GUI
+        #self.m = tval * tval / 2.0
+        self.m = 2.0 # corresponds roughly to 2 SD
         self.clim = sqrt(2. * self.m)
         self.Lcrit = self.Lmax - self.m
         self.Llimits = errors.lik_intervals(self.eq.theta, self.aproxSD, self.m, self.eq, self.data)
