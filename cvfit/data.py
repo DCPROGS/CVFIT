@@ -1,5 +1,6 @@
 import xlrd
 import numpy as np
+import pandas as pd
 from scipy import stats
 
 class XYDataSet(object):
@@ -127,7 +128,30 @@ class XYDataSet(object):
         for i in range(len(self.X)):
             str += "{0:.6g}\t{1:.6g}\t{2:.6g}\t{3:.6g}\n".format(self.X[i], self.Y[i], self.S[i], self.W[i])
         return str
-    
+
+def read_single_columns_from_Excel(fname, sheet):
+    """
+    Read Excel file sheet where each column contains multiple measurements for one condition
+    (eg concentration).
+    """
+    xl = pd.ExcelFile(fname)
+    df = xl.parse(sheet)
+    names = df.columns.tolist()
+    setlist = []
+    X, Y, S = [], [], []
+    for i in range(len(names)):
+        temp = names[i].split()
+        x, unit = float(temp[0]), temp[1]
+        y = df.iloc[:, i].dropna().values.tolist()
+        Y += y
+        X += [x] * len(y)
+        S += [0] * len(y)
+    set = XYDataSet()
+    set.from_columns(np.array(X), np.array(Y), np.array(S))
+    set.title = 'Set ' + str(sheet)
+    set.weightmode = 1
+    setlist.append(set)
+    return setlist
     
 def read_sets_from_Excel(fname, set_col=0, line_skip=0, sheet=0):
     """

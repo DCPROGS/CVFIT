@@ -64,10 +64,10 @@ class LoadDataDlg(QDialog):
         layout1.addWidget(self.rowSB)
         
         layout2 = QHBoxLayout()
-        layout2.addWidget(QLabel('How many columns in each set (2 or 3)?'))
+        layout2.addWidget(QLabel('How many columns in each set (1, 2 or 3)?'))
         self.colSB = QSpinBox()
         self.colSB.setValue(2)
-        self.colSB.setRange(2, 3)
+        self.colSB.setRange(1, 3)
         self.colSB.valueChanged.connect(self.on_changed)
         layout2.addWidget(self.colSB)
         layout.addLayout(layout1)
@@ -96,8 +96,11 @@ class LoadDataDlg(QDialog):
         
     def return_data(self):
         if self.type == 'xls' or self.type == 'xlsx':
-            return data.read_sets_from_Excel(self.filename, self.col, self.row, 
-                self.sheet)
+            if self.col == 1:
+                return data.read_single_columns_from_Excel(self.filename, self.sheet)
+            else:
+                return data.read_sets_from_Excel(self.filename, self.col, self.row, 
+                    self.sheet)
         else:
             return data.read_sets_from_csv(self.filename, self.type, col=self.col,
                 header=self.row, namesin=False, weight=self.weight)
