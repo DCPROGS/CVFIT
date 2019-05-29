@@ -149,6 +149,8 @@ class EquationDlg(QDialog):
             from cvfit.equations import Hill as EQ
         elif eqtype == 'Linear':
             from cvfit.equations import Linear as EQ
+        elif eqtype == 'dCK':
+            from cvfit.equations import dCK as EQ
         self.equations = []
         self.data = data
         self.log = output

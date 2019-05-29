@@ -111,6 +111,7 @@ class EquationBlock(QWidget):
         '(1) Hill equation',
         '(2) Langmuir equation',
         '(3) Straight line',
+        #'(4) Sequential n bindings followed by opening'
         #'(3) Polynomial (inc. straight line)',
         #'(4) Langmuir hyperbola(s) (inc. or dec.)',
         #'(5) Hill equation(s) plus straight line',
@@ -327,6 +328,8 @@ class EquationBlock(QWidget):
             self.parent.eqtype = 'Langmuir'
         elif row == 2:
             self.parent.eqtype = 'Linear'
+        elif row == 3:
+            self.parent.eqtype = 'dCK'
         else:
             self.parent.log.write("This eqation is not implemented yet.\n" +
                 "Please, choose other equation.")

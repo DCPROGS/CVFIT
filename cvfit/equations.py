@@ -1,5 +1,5 @@
 import math
-from scipy import stats
+import scipy
 import numpy as np
 
 class Equation(object):
@@ -81,6 +81,46 @@ class GHK(Equation):
         plY = self.equation(plX, coeff)
         return plX, plY
 
+class dCK(Equation):
+    def __init__(self, eqname, pars=None):
+        """
+        pars = [E, K, n]
+        """
+        self.eqname = eqname
+        self.ncomp = 1
+        self.pars = pars
+        self.fixed = [False, False, False]
+        self.names = ['E', 'K', 'n']
+        
+    def equation(self, c, coeff):
+        '''
+        Mechanism of sequential binding of n molecules followed by opening.
+        
+        R <-> AR <-> A2R <-> ... <-> AnR <-> AnR*
+
+        coeff : list [E, K, n]
+        '''
+        
+        Eterm = coeff[0] * (c / coeff[1])**int(round(coeff[2]))
+        Kterm = 0.0
+        for r in range(int(round(coeff[2]))):
+            Kterm += scipy.special.binom(int(round(coeff[2])), r) * (c / coeff[1])**r
+        return  Eterm / (1 + Kterm + Eterm)
+
+    def propose_guesses(self, data):
+        '''
+        Calculate the initial guesses for fitting with Linear equation.
+        '''
+        #if self.Component == 1:
+        #slope, intercept, r, p, stderr = scipy.stats.linregress(data.X, data.Y)
+        self.guess = np.array([10.0, 0.2, 2])
+        self.pars = self.guess.copy()
+        
+    def calculate_plot(self, X, coeff):
+        plotX = np.linspace(np.floor(np.amin(X) - 1),
+            np.ceil(np.amax(X) + 1), 100)
+        plotY = self.equation(plotX, coeff)
+        return plotX, plotY
     
 class Linear(Equation):
     def __init__(self, eqname, pars=None):
@@ -104,7 +144,7 @@ class Linear(Equation):
         Calculate the initial guesses for fitting with Linear equation.
         '''
         #if self.Component == 1:
-        slope, intercept, r, p, stderr = stats.linregress(data.X, data.Y)
+        slope, intercept, r, p, stderr = scipy.stats.linregress(data.X, data.Y)
         self.guess = np.array([intercept, slope])
         self.pars = self.guess.copy()
         
@@ -210,7 +250,7 @@ class Hill(Equation):
         LinRegressX = np.log10(data.X[data.Y < np.amax(data.Y)]) - np.log10(self.guess[2])
         ratio = data.Y[data.Y < np.amax(data.Y)] / np.amax(data.Y)
         LinRegressY = np.log10(ratio / (1 - ratio))
-        slope, intercept, r_value, p_value, std_err = stats.linregress(
+        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(
             LinRegressX, LinRegressY)
         if math.isnan(slope):
             self.guess[3] = 1.0 if data.increase else -1.0
