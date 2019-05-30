@@ -89,23 +89,23 @@ class dCK(Equation):
         self.eqname = eqname
         self.ncomp = 1
         self.pars = pars
-        self.fixed = [False, False, False]
-        self.names = ['E', 'K', 'n']
+        self.fixed = [False, False, False, False]
+        self.names = ['E', 'K', 'n', 'nch']
         
     def equation(self, c, coeff):
         '''
         Mechanism of sequential binding of n molecules followed by opening.
-        
+
         R <-> AR <-> A2R <-> ... <-> AnR <-> AnR*
 
-        coeff : list [E, K, n]
+        coeff : list [E, K, n, numChannels]
         '''
-        
-        Eterm = coeff[0] * (c / coeff[1])**int(round(coeff[2]))
+
+        Eterm = coeff[0] * (c**int(round(coeff[2])) / coeff[1])
         Kterm = 0.0
         for r in range(int(round(coeff[2]))):
             Kterm += scipy.special.binom(int(round(coeff[2])), r) * (c / coeff[1])**r
-        return  Eterm / (1 + Kterm + Eterm)
+        return  coeff[3] * Eterm / (1 + Kterm + Eterm)
 
     def propose_guesses(self, data):
         '''
@@ -113,7 +113,7 @@ class dCK(Equation):
         '''
         #if self.Component == 1:
         #slope, intercept, r, p, stderr = scipy.stats.linregress(data.X, data.Y)
-        self.guess = np.array([10.0, 0.2, 2])
+        self.guess = np.array([10.0, np.mean(data.X), 2, np.amax(data.Y)])
         self.pars = self.guess.copy()
         
     def calculate_plot(self, X, coeff):
