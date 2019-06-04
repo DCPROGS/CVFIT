@@ -21,10 +21,18 @@ def linear(x, a, b):
 
 def popen_dCK3(c, E, K):
     """Mechanism of sequential binding of n molecules followed by opening.
-    R <-> AR <-> A2R <-> ... <-> AnR <-> AnR*
+    R <-> AR <-> A2R <-> A3R <-> AnR*
     """
     Eterm = E * c**3 / K**3
     Kterm = np.sum([binom(3, r)*(c/K)**r for r in range(1, 4)])
+    return  Eterm / (1 + Kterm + Eterm)
+
+def popen_dCK2(c, E, K):
+    """Mechanism of sequential binding of n molecules followed by opening.
+    R <-> AR <-> A2R <-> AnR*
+    """
+    Eterm = E * c**2 / K**2
+    Kterm = np.sum([binom(2, r)*(c/K)**r for r in range(1, 2)])
     return  Eterm / (1 + Kterm + Eterm)
 
 def GHK(x, r, totOut, In1, In2):
@@ -39,11 +47,11 @@ def Langmuir(x, Ymin, Ymax, EC50): # Hill slope = 1
     return (Ymin + ((Ymax - Ymin) * (x / EC50)) / (1 + (x / EC50)))
 
 ###################   Fit, errors   #################################
-def fit(equation, X, Y, theta, S=None, limits=None):
+def fit(equation, X, Y, theta, S=None): #, limits=None):
     """Use scipy curve_fit."""
     sigma_is_used = True if S is not None else False
     estimates, covariance = curve_fit(equation, X, Y, 
-        p0=theta, absolute_sigma=sigma_is_used, sigma = S, bounds=limits)
+        p0=theta, absolute_sigma=sigma_is_used, sigma = S) #, bounds=limits)
     return estimates, covariance
 
 def errors(estimates, covariance, dof, alpha=0.05):
@@ -63,9 +71,10 @@ def print_estimates_errors(names, estimates, SD, confidence_limits):
             format(name, p, v, c[0], c[1]))
 
 def single_curve_fit(equation, X, Y, theta, names):
-    estimates, covariance = fit(equation, X, Y, theta, limits=(0, [100., 100.]))
+    estimates, covariance = fit(equation, X, Y, theta) #, limits=(0, [100., 100.]))
     approxSD, conf95 = errors(estimates, covariance, dof(X, theta), alpha=0.05)
     print_estimates_errors(names, estimates, approxSD, conf95)
+    return estimates
 
 ######################   Examples   #################################
 def example_linear():
