@@ -46,6 +46,14 @@ def Hill(x, Ymin, Ymax, EC50, nH):
 def Langmuir(x, Ymin, Ymax, EC50): # Hill slope = 1
     return (Ymin + ((Ymax - Ymin) * (x / EC50)) / (1 + (x / EC50)))
 
+def non_stationary_noise(x, i, N, s0):
+    """Parabolic function: ensemble variance vs the mean current- used in 
+       non-stationary noise analysis.
+       Parameters: i- single channel current amplitude; 
+       N- available number of channels; s0- variance of background noise.
+    """
+    return i * x - x**2 / N + s0
+
 ###################   Fit, errors   #################################
 def fit(equation, X, Y, theta, S=None): #, limits=None):
     """Use scipy curve_fit."""
