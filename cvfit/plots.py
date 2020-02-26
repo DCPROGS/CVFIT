@@ -1,27 +1,27 @@
-from pylab import *
+import matplotlib.pyplot as plt
 
-def plot(datasets, fplotsets=None, fplotline='b-', 
+def cvfit_plot(datasets, fplotsets=None, fplotline='b-', 
     fig=None, logX=False, logY=False, legend=True, norm=False, pooled=False):
         
     newfig = False
-    if not fig:
-        fig, ax = subplots()
+    if fig is None:
+        ax = plt.gca()
         newfig = True
     ax = fig.add_subplot(111)
     ax.clear()
         
-    for set in datasets:
+    for each in datasets:
         if norm:
-            X, Y, S = set.X, set.normY, set.normS
+            X, Y, S = each.X, each.normY, each.normS
         elif pooled:
-            X, Y, S = set.avX, set.avY, set.avS
+            X, Y, S = each.avX, each.avY, each.avS
         else:
-            X, Y, S = set.X, set.Y, set.S
+            X, Y, S = each.X, each.Y, each.S
         if S.any() == 0:
-            ax.plot(X, Y, 'o', label=set.title)
+            ax.plot(X, Y, 'o', label=each.title)
         else: 
             ax.errorbar(X, Y, yerr=S,
-                fmt='o', label=set.title)
+                fmt='o', label=each.title)
                 
     if fplotsets:
         for fplot in fplotsets:
@@ -33,7 +33,7 @@ def plot(datasets, fplotsets=None, fplotline='b-',
     if legend:
         ax.legend(loc=2)
     if newfig:
-        show()
+        plt.show()
         return fig
 
 

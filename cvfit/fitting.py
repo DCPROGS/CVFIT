@@ -3,6 +3,7 @@ import sys
 from math import sqrt, fabs
 from scipy import optimize
 import numpy as np
+from array import array
 
 import cvfit
 from cvfit import data
@@ -77,11 +78,12 @@ class SingleFitSession(object):
         #    args=(self.eq, self.data.X, self.data.Y, self.data.W), full_output=1)
         coeffs, smin = simplex(SSD, self.eq.theta, self.eq, self.data.X, self.data.Y, self.data.W)
         self.eq.theta = coeffs
+        self.Smin = smin
        
     def calculate_errors(self):
 
-        self.Smin = SSD(self.eq.theta, (self.eq,
-            self.data.X, self.data.Y, self.data.W))
+        #self.Smin = SSD(self.eq.theta, (self.eq,
+        #    self.data.X, self.data.Y, self.data.W))
         #print '\n SSD \n', Smin
         #hes = errors.hessian(coeffs, eq, set)
         #print '\n Observed information matrix = \n', hes
@@ -96,7 +98,9 @@ class SingleFitSession(object):
         self.Sres, self.Lmax = sqrt(self.var), -SSDlik(self.eq.theta, self.eq, self.data)
 
         tval = errors.tvalue(self.ndf)
-        self.m = tval * tval / 2.0
+        # TODO: choose m value from GUI
+        #self.m = tval * tval / 2.0
+        self.m = 2.0 # corresponds roughly to 2 SD
         self.clim = sqrt(2. * self.m)
         self.Lcrit = self.Lmax - self.m
         self.Llimits = errors.lik_intervals(self.eq.theta, self.aproxSD, self.m, self.eq, self.data)
@@ -159,7 +163,7 @@ class SingleFitSession(object):
         return txt
 
 
-def load_data(example=False):
+def load_data(example=False, sheet=0):
 
     if example:
         filename = (os.path.dirname(os.path.dirname(cvfit.__file__)) +
@@ -168,7 +172,7 @@ def load_data(example=False):
         filename = data.ask_for_file()
     try:
         #allsets = data.read_sets_from_csv(filename, 'csv', col=2, header=0, namesin=False, weight=1)
-        allsets = data.read_sets_from_Excel(filename, 2, 0, 0) #, namesin=False, weight=1)
+        allsets = data.read_sets_from_Excel(filename, 2, 0, sheet) #, namesin=False, weight=1)
     except ValueError:
         print('fitting.py: WARNING: Oops! File did not load properly...')
     return allsets, filename
